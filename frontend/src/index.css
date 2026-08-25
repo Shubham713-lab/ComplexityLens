@@ -1,45 +1,93 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
-@layer base {
-  :root {
-    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  body {
-    font-family: var(--font-sans);
-    background-color: #0d0f17;
-    color: #e2e8f0;
-  }
+:root {
+  font-family: 'Inter', system-ui, sans-serif;
+  color-scheme: dark;
 }
 
-/* Custom developer scrollbar */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0b0f19;
+  color: #f8fafc;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #0d0f17;
+  background: #0f172a;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #262b40;
-  border-radius: 3px;
+  background: #334155;
+  border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #3b4261;
+  background: #475569;
 }
 
-/* Code editor glow / glass utilities */
-.developer-panel {
-  background: rgba(20, 23, 36, 0.85);
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(19, 27, 46, 0.75);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.developer-panel-header {
-  background: rgba(15, 18, 28, 0.9);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+.glass-card {
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* React Flow Dark Styling */
+.react-flow__node {
+  border-radius: 8px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 12px !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+  color: #f8fafc !important;
+}
+
+.react-flow__node-startNode {
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  border: 1px solid #34d399 !important;
+}
+
+.react-flow__node-endNode {
+  background: linear-gradient(135deg, #e11d48, #f43f5e) !important;
+  border: 1px solid #fb7185 !important;
+}
+
+.react-flow__node-loopNode {
+  background: linear-gradient(135deg, #0284c7, #38bdf8) !important;
+  border: 1px solid #7dd3fc !important;
+}
+
+.react-flow__node-branchNode {
+  background: linear-gradient(135deg, #d97706, #f59e0b) !important;
+  border: 1px solid #fcd34d !important;
+}
+
+.react-flow__node-recursionNode {
+  background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+  border: 1px solid #c084fc !important;
+}
+
+.react-flow__node-statementNode {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+}
+
+.react-flow__edge-path {
+  stroke: #475569 !important;
+  stroke-width: 2px !important;
 }
