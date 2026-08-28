@@ -27,8 +27,7 @@ export default function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [activeTab, setActiveTab] = useState('graph');
-  const [apiKey, setApiKey] = useState('AIzaSyDnad-ykwqnmW_IWYqyqkld-bUU2dy9ljY');
-
+  const [apiKey, setApiKey] = useState('');
   // Fetch presets from FastAPI backend
   useEffect(() => {
     fetch(`${API_BASE}/api/presets`)

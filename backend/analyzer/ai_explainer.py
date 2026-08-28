@@ -1,8 +1,11 @@
 import os
 import json
 from typing import Dict, Any, Optional
+from dotenv import load_dotenv
+from openai import OpenAI
 
-DEFAULT_GEMINI_KEY = "AIzaSyDnad-ykwqnmW_IWYqyqkld-bUU2dy9ljY"
+load_dotenv()
+
 
 def generate_ai_explanation(
     code: str,
@@ -13,21 +16,20 @@ def generate_ai_explanation(
     api_key: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Use Gemini API (via Google AI Studio key) or fallback rule engine to explain complexity,
+    Use Groq API (OpenAI-compatible) or fallback rule engine to explain complexity,
     highlight bottlenecks, and suggest optimized code.
     """
-    effective_api_key = api_key or os.environ.get("GEMINI_API_KEY") or DEFAULT_GEMINI_KEY
-    
+    effective_api_key = api_key or os.environ.get("GROQ_API_KEY")
+    model_name = os.environ.get("MODEL_NAME", "openai/gpt-oss-20b")
+
     if effective_api_key:
         try:
-            from google import genai
-            client = genai.Client(api_key=effective_api_key)
+            client = OpenAI(
+                api_key=effective_api_key,
+                base_url="https://api.groq.com/openai/v1",
+            )
             prompt = f"""You are a world-class algorithm complexity expert.
-Analyze the following {language} code:
-
-```
-{code}
-```
+Analyze the following {language} code: {code}
 
 Detected Time Complexity: {time_o}
 Detected Space Complexity: {space_o}
@@ -39,29 +41,17 @@ Please provide a JSON object (and nothing else) with these exact keys:
 - "optimization_suggestions": A list of 2-4 actionable step-by-step optimization strategies.
 - "optimized_code": A rewritten, optimized version of the code that achieves better complexity if possible, or clean best-practice version.
 """
-            # Try gemini-3.6-flash first
-            for model_name in ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest"]:
-                try:
-                    response = client.models.generate_content(
-                        model=model_name,
-                        contents=prompt,
-                    )
-                    text = response.text.strip()
-                    if text.startswith("```json"):
-                        text = text[7:]
-                    if text.startswith("```"):
-                        text = text[3:]
-                    if text.endswith("```"):
-                        text = text[:-3]
-                    text = text.strip()
-                    
-                    parsed = json.loads(text)
-                    parsed["ai_source"] = f"Gemini AI ({model_name})"
-                    return parsed
-                except Exception:
-                    continue
-        except Exception:
-            pass
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+            )
+            text = response.choices[0].message.content.strip()
+            parsed = json.loads(text)
+            parsed["ai_source"] = f"Groq AI ({model_name})"
+            return parsed
+        except Exception as e:
+            print(f"Groq API call failed, falling back to rule engine: {e}")
 
     # Intelligent Fallback Engine
     return _rule_based_ai_fallback(code, language, time_o, space_o, formula)
@@ -71,11 +61,11 @@ def _rule_based_ai_fallback(code: str, language: str, time_o: str, space_o: str,
         f"The submitted {language.title()} code exhibits an overall asymptotic time complexity of {time_o} "
         f"and an auxiliary space complexity of {space_o}. The total operation count as a function of input size N is governed by {formula}.\n\n"
     )
-    
+
     bottlenecks = []
     optimizations = []
     optimized_code = code
-    
+
     if time_o in ("O(N²)", "O(N³)", "O(N^2)", "O(N^3)"):
         explanation += (
             "The dominant growth factor stems from nested iteration blocks where the inner loop executes multiple times for each outer loop iteration. "
@@ -83,11 +73,11 @@ def _rule_based_ai_fallback(code: str, language: str, time_o: str, space_o: str,
         )
         bottlenecks.append(f"Nested loop structure scaling with N ({time_o}).")
         bottlenecks.append("Repeated redundant comparisons across iterations.")
-        
+
         optimizations.append("Use Hash Map / Hash Set lookup to replace inner loop searches, reducing time complexity from O(N²) to O(N).")
         optimizations.append("Apply Two-Pointer or Sliding Window techniques if searching in ordered arrays.")
         optimizations.append("Leverage divide-and-conquer strategy or dynamic programming memoization.")
-        
+
         if language == "python":
             optimized_code = (
                 "# Optimized implementation using Hash Map (O(N) Time, O(N) Space)\n"
@@ -115,7 +105,7 @@ def _rule_based_ai_fallback(code: str, language: str, time_o: str, space_o: str,
                 "    return {};\n"
                 "}\n"
             )
-        else: # java
+        else:  # java
             optimized_code = (
                 "// Optimized implementation using HashMap (O(N) Time)\n"
                 "import java.util.HashMap;\n"
@@ -139,10 +129,10 @@ def _rule_based_ai_fallback(code: str, language: str, time_o: str, space_o: str,
         )
         bottlenecks.append("Exponential recursive branching factor without state caching.")
         bottlenecks.append("Call stack memory consumption proportional to tree depth O(N).")
-        
+
         optimizations.append("Add Dynamic Programming memoization (top-down) or iterative tabular approach (bottom-up) to reduce time complexity to O(N).")
         optimizations.append("Use iterative loop to reduce space complexity to O(1).")
-        
+
         if language == "python":
             optimized_code = (
                 "# Optimized using Dynamic Programming / Iteration (O(N) Time, O(1) Space)\n"
@@ -158,7 +148,7 @@ def _rule_based_ai_fallback(code: str, language: str, time_o: str, space_o: str,
         explanation += "The code operates efficiently with low algorithmic cost."
         bottlenecks.append("No major structural bottlenecks detected.")
         optimizations.append("Code already adheres to efficient computational complexity boundaries.")
-        
+
     return {
         "natural_explanation": explanation,
         "bottlenecks": bottlenecks,

@@ -3,6 +3,43 @@ import networkx as nx
 from typing import Dict, Any, List, Tuple
 from .sympy_solver import solve_loop_complexity
 
+KNOWN_BUILTIN_COSTS = {
+    "sorted": "O(N log N)",
+    "sort": "O(N log N)",
+    "min": "O(N)",
+    "max": "O(N)",
+    "sum": "O(N)",
+    "factorial": "O(N)",  # the multiplication chain itself is O(n), even though math.factorial is one call
+    "reversed": "O(N)",
+}
+
+
+def _detect_uncounted_builtin_cost(tree) -> str | None:
+    """
+    Scans for calls to known non-constant builtins that occur OUTSIDE any
+    loop the AST-based loop analysis would already have counted. Returns
+    the worst-case Big-O found, or None if nothing relevant is found.
+    This guards against the "zero visible loops, real cost is inside a
+    builtin call" blind spot (e.g. sorted(arr), math.factorial(n)).
+    """
+    worst = None
+    priority = {"O(N)": 1, "O(N log N)": 2}
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func_name = None
+            if isinstance(node.func, ast.Name):
+                func_name = node.func.id
+            elif isinstance(node.func, ast.Attribute):
+                func_name = node.func.attr
+
+            if func_name in KNOWN_BUILTIN_COSTS:
+                candidate = KNOWN_BUILTIN_COSTS[func_name]
+                if worst is None or priority.get(candidate, 0) > priority.get(worst, 0):
+                    worst = candidate
+
+    return worst
+
 class PythonCodeAnalyzer(ast.NodeVisitor):
     def __init__(self, code: str):
         self.code = code
@@ -76,7 +113,18 @@ class PythonCodeAnalyzer(ast.NodeVisitor):
             }
         else:
             solver_res = solve_loop_complexity(self.loops_info)
-            
+            if solver_res["time_complexity_o"] == "O(1)":
+                builtin_cost = _detect_uncounted_builtin_cost(self.tree)
+                if builtin_cost:
+                    # Extract just the inner term (e.g. "N" or "N log N") for formula/latex/dominant_term
+                    inner_term = builtin_cost.replace("O(", "").replace(")", "")
+                    solver_res["time_complexity_o"] = builtin_cost
+                    solver_res["time_complexity_omega"] = builtin_cost.replace("O(", "Ω(")
+                    solver_res["time_complexity_theta"] = builtin_cost.replace("O(", "Θ(")
+                    solver_res["formula_str"] = f"T = {inner_term} (cost hidden inside a builtin/library call)"
+                    solver_res["latex_formula"] = f"T = {inner_term.replace(' log ', ' \\\\log_2 ')}"
+                    solver_res["dominant_term"] = inner_term
+
         return {
             "valid": True,
             "language": "python",

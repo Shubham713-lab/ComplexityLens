@@ -7,6 +7,7 @@ from analyzer.python_analyzer import analyze_python_code
 from analyzer.cpp_java_analyzer import analyze_cpp_java_code
 from analyzer.execution_benchmark import run_empirical_benchmark
 from analyzer.ai_explainer import generate_ai_explanation
+from dotenv import load_dotenv; load_dotenv()
 
 app = FastAPI(title="Real-Time Algorithm Complexity Analyzer API", version="1.0.0")
 
