@@ -4,8 +4,7 @@
 
 ComplexityLens is a computer science platform that performs static AST code analysis, real-time asymptotic Big-O calculation, live CPU sandbox benchmarking, interactive Control Flow Graph (CFG) rendering, KaTeX mathematical typesetting, and AI-powered code optimization.
 
-Designed for algorithm analysis, college practical lab submissions, viva examinations, and software performance audits.
-
+Designed for algorithm analysis.
 ---
 
 ## Key Features
@@ -202,5 +201,5 @@ ComplexityLens ships with classic Computer Science Data Structures & Algorithms 
 
 ---
 
-## 📄 License
-Created for academic demonstration and software engineering performance evaluation. Built under the MIT License.
+## License
+ Built under the MIT License.
