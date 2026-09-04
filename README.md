@@ -1,4 +1,4 @@
-# ComplexityLens 🔍⚡
+# ComplexityLens 
 
 > **Real-Time Algorithm Complexity Inspector, Control Flow Visualizer & Empirical Benchmarking Engine**
 
@@ -8,47 +8,47 @@ Designed for algorithm analysis, college practical lab submissions, viva examina
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-### 1. ⚡ Static AST & Asymptotic Complexity Analysis
+### 1. Static AST & Asymptotic Complexity Analysis
 - Parses code structure using Abstract Syntax Trees (AST) for **Python**, **C++**, and **Java**.
 - Computes exact **Time Complexity** ($O(1)$, $O(\log N)$, $O(N)$, $O(N \log N)$, $O(N^2)$, $O(N^3)$, $O(2^N)$), **Best Case** ($\Omega$), and **Tight Bound** ($\Theta$).
 - Calculates **Auxiliary Space Complexity** and SymPy-simplified **Step Formulas** (e.g., $T(N) = \frac{N(N-1)}{2}$).
 - **Built-in Method Awareness**: Correctly detects algorithm costs hidden inside library functions (`sorted()`, `math.factorial()`, `min()`, `max()`).
 
-### 2. 🧪 Interactive Empirical Sandbox Benchmarking
+### 2. Interactive Empirical Sandbox Benchmarking
 - **Real CPU Execution**: Executes user code in a sandboxed runner against dynamic input sizes ($N = 10 \dots 50,000$).
 - **High-Precision Timing**: Measures execution duration in nanoseconds using `time.perf_counter_ns()` across multiple trial iterations.
 - **$R^2$ Regression Curve Fitting**: Computes Coefficient of Determination ($R^2$) to evaluate percentage confidence matching measured timing against theoretical Big-O curves (e.g., `99.2% match to O(N²)`).
 - **Dual-Mode Visualizer**: Toggle between **Empirical Runtime (ms)** and **Theoretical Step Counts**.
 
-### 3. 🌿 Hierarchical AST Control Flow & Call Graph
+### 3. Hierarchical AST Control Flow & Call Graph
 - Built with **ReactFlow** featuring dynamic $X$-indentation for nested loop depths.
 - **Animated Loopback Edges**: Curved dashed arrows (`Loop Iteration`) illustrating loop iterations and recursion.
-- **🎯 Graph-to-Code Click Synchronization**: Clicking any graph node automatically scrolls and highlights that line in the Monaco Code Editor.
+- ** Graph-to-Code Click Synchronization**: Clicking any graph node automatically scrolls and highlights that line in the Monaco Code Editor.
 - Custom color-coded node cards displaying line numbers (`L:4`), statement snippets, and complexity badges.
 
-### 4. 🔥 Monaco Editor Line Heatmap
+### 4. Monaco Editor Line Heatmap
 - Embedded **Monaco Code Editor** with custom line decoration heatmaps:
-  - 🔴 **Red Glow (`O(N²)` / `O(2^N)`)**: Inner high-cost loops and exponential recursion.
-  - 🟡 **Amber Glow (`O(N)`)**: Outer linear loop structures.
-  - 🔵 **Cyan Glow (`O(log N)`)**: Logarithmic partitioning steps.
-  - 🟢 **Emerald Tint (`O(1)`)**: Constant-time statements.
+  -  **Red Glow (`O(N²)` / `O(2^N)`)**: Inner high-cost loops and exponential recursion.
+  -  **Amber Glow (`O(N)`)**: Outer linear loop structures.
+  -  **Cyan Glow (`O(log N)`)**: Logarithmic partitioning steps.
+  -  **Emerald Tint (`O(1)`)**: Constant-time statements.
 - Developer typography with **JetBrains Mono** font and code ligatures enabled (`!=`, `==`, `<=`, `=>`).
 
-### 5. 📐 KaTeX Mathematical Typesetting
+### 5.  KaTeX Mathematical Typesetting
 - Renders Big-O notation, $\Omega$, $\Theta$, step formulas, and line cost badges into mathematical equations ($T(N) = \frac{N(N-1)}{2} \in O(N^2)$) using **KaTeX**.
 
-### 6. 📄 CS Lab Audit Report Export (Printable PDF)
+### 6. CS Lab Audit Report Export (Printable PDF)
 - One-click PDF Lab Report generation (`window.print()`).
 - Print-optimized stylesheet (`@media print`) that formats background colors, code blocks, complexity matrices, empirical benchmark tables, and line-cost annotations on clean white paper for lab submissions.
 
-### 7. 🤖 Groq AI Optimization Engine
-- Powered by **Groq LLaMA/GPT models** (via OpenAI-compatible API) for real-time code bottleneck identification and refactoring suggestions.
+### 7. Gemini AI Optimization Engine
+- Powered by **Gemini LLaMA/GPT models** (via OpenAI-compatible API) for real-time code bottleneck identification and refactoring suggestions.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technologies Used |
 |---|---|
@@ -59,25 +59,25 @@ Designed for algorithm analysis, college practical lab submissions, viva examina
 | **Math Typesetting** | KaTeX (`katex`) |
 | **Backend API** | Python 3.10+, FastAPI, Uvicorn, Pydantic, CORS Middleware |
 | **Analysis Engine** | AST (Abstract Syntax Tree), SymPy (Symbolic Mathematics) |
-| **AI Provider** | Groq API (`groq-sdk` / `openai` client) |
+| **AI Provider** | Gemini API (`Gemini-sdk` / `openai` client) |
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ComplexityLens/
 ├── backend/
 │   ├── analyzer/
 │   │   ├── __init__.py
-│   │   ├── ai_explainer.py          # Groq AI & Rule-based Explanation Engine
+│   │   ├── ai_explainer.py          # Gemini AI & Rule-based Explanation Engine
 │   │   ├── cpp_java_analyzer.py      # C++ / Java Regex & Tree Complexity Inspector
 │   │   ├── execution_benchmark.py   # Empirical Sandbox Runner & R² Curve Fitter
 │   │   ├── python_analyzer.py       # Python AST Visitor & Graph Generator
 │   │   └── sympy_solver.py          # Symbolic Math Simplifier for T(N)
 │   ├── main.py                      # FastAPI REST API Endpoints
 │   ├── requirements.txt             # Python Backend Dependencies
-│   └── .env                         # Environment variables (GROQ_API_KEY)
+│   └── .env                         # Environment variables (Gemini_API_KEY)
 │
 ├── frontend/
 │   ├── src/
@@ -104,7 +104,7 @@ ComplexityLens/
 
 ---
 
-## 🚀 Quickstart & Installation
+## Quickstart & Installation
 
 ### Prerequisites
 - **Python 3.10+**
@@ -125,8 +125,8 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Create backend/.env file with your Groq API key
-echo "GROQ_API_KEY=your_groq_api_key_here" > .env
+# Create backend/.env file with your Gemini API key
+echo "Gemini_API_KEY=your_Gemini_api_key_here" > .env
 echo "MODEL_NAME=openai/gpt-oss-20b" >> .env
 
 # Start FastAPI server
@@ -152,7 +152,7 @@ Frontend Web App will open on `http://localhost:5173`.
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 ### `POST /api/analyze`
 Analyzes code and returns asymptotic complexity metrics, line costs, AST graph nodes/edges, benchmark datasets, and AI explanation summaries.
@@ -190,7 +190,7 @@ Runs empirical timing for a custom $N_{max}$ range and number of trial iteration
 
 ---
 
-## 📚 Preset Algorithm Library
+## Preset Algorithm Library
 
 ComplexityLens ships with classic Computer Science Data Structures & Algorithms presets:
 - **Two Sum (Nested Loop $O(N^2)$ vs Hash Map $O(N)$)**
@@ -199,16 +199,6 @@ ComplexityLens ships with classic Computer Science Data Structures & Algorithms 
 - **Matrix Multiplication ($O(N^3)$)**
 - **Recursive Fibonacci ($O(2^N)$)**
 - **Bubble Sort ($O(N^2)$)**
-
----
-
-## 🎓 College Viva Q&A Guide
-
-**Q1: How does static AST analysis differ from empirical benchmarking?**  
-*Answer:* Static analysis inspects source code structure (AST nodes, loop nesting levels, recursion branches) without executing the code, providing exact theoretical bounds ($O(N^2)$). Empirical benchmarking runs actual code timing across increasing input sizes ($N = 10 \dots 50,000$) to measure real CPU milliseconds and validate theoretical models using $R^2$ regression scoring.
-
-**Q2: What is the purpose of the Coefficient of Determination ($R^2$) score?**  
-*Answer:* The $R^2$ score measures how closely actual measured CPU timing data fits standard Big-O growth curves ($O(1)$, $O(\log N)$, $O(N)$, $O(N \log N)$, $O(N^2)$). An $R^2$ score close to $1.0$ ($99\%+$) proves that empirical timing matches theoretical expectations.
 
 ---
 
