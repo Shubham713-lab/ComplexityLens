@@ -2,7 +2,12 @@ import math
 import time
 import ast
 import statistics
+import subprocess
+import tempfile
+import os
+import json as _json
 from typing import Dict, Any, List, Optional
+
 
 def _generate_mock_args(fn_name: str, fn_args: List[str], n: int, time_complexity_o: str) -> List[Any]:
     """Generate dynamic input parameters for standard algorithm signatures based on size N."""
@@ -29,6 +34,7 @@ def _generate_mock_args(fn_name: str, fn_args: List[str], n: int, time_complexit
             args.append(list(range(effective_n)))
     return args
 
+
 def _calculate_r2_score(y_measured: List[float], f_theoretical: List[float]) -> float:
     """Calculate Coefficient of Determination (R²) between empirical timing and theoretical curve."""
     if len(y_measured) < 2:
@@ -43,10 +49,54 @@ def _calculate_r2_score(y_measured: List[float], f_theoretical: List[float]) -> 
     if denom == 0:
         return 0.0
     c = sum(y * f for y, f in zip(y_measured, f_theoretical)) / denom
-    
+
     ss_res = sum((y - c * f) ** 2 for y, f in zip(y_measured, f_theoretical))
     r2 = 1.0 - (ss_res / ss_tot)
     return max(0.0, min(1.0, r2))
+
+
+def _run_in_subprocess(code: str, func_name: str, args: list, timeout_seconds: int = 5) -> Optional[float]:
+    """
+    Runs the user's function in a separate process with a hard timeout,
+    instead of exec()-ing it directly in the backend process. This prevents
+    a malicious or buggy submission (e.g. an infinite loop) from hanging
+    the backend server indefinitely, since the old exec()-based approach
+    had no timeout or process isolation at all.
+
+    Returns elapsed time in ms, or None if it failed/timed out.
+    """
+    wrapper = f"""
+import time, json, sys
+{code}
+
+args = json.loads(sys.argv[1])
+start = time.perf_counter_ns()
+try:
+    {func_name}(*args)
+except Exception:
+    pass
+end = time.perf_counter_ns()
+print((end - start) / 1e6)
+"""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        f.write(wrapper)
+        temp_path = f.name
+
+    try:
+        result = subprocess.run(
+            ["python", temp_path, _json.dumps(args)],
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+        )
+        if result.returncode == 0:
+            return float(result.stdout.strip())
+        return None
+    except (subprocess.TimeoutExpired, ValueError):
+        return None
+    finally:
+        os.remove(temp_path)
+
 
 def run_empirical_benchmark(
     time_complexity_o: str = "O(N)",
@@ -56,8 +106,10 @@ def run_empirical_benchmark(
     num_trials: int = 3
 ) -> Dict[str, Any]:
     """
-    Executes real empirical code timing (if Python code provided) or simulates empirical steps,
-    measures execution duration across varying N, and computes theoretical R² curve fit score.
+    Executes real empirical code timing (if Python code provided, via an
+    isolated timed subprocess) or simulates empirical steps, measures
+    execution duration across varying N, and computes theoretical R² curve
+    fit score.
     """
     # Dynamic grid of N up to max_n
     step_ratios = [0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1.0]
@@ -70,38 +122,27 @@ def run_empirical_benchmark(
     # Attempt live execution if Python code is provided
     if code and language.lower() == "python":
         try:
-            # Safe namespace exec
-            exec_globals: Dict[str, Any] = {}
-            exec(code, exec_globals)
-            
-            # Find candidate user-defined function
-            func_name = None
             parsed = ast.parse(code)
+            func_name = None
             for node in ast.walk(parsed):
                 if isinstance(node, ast.FunctionDef) and not node.name.startswith('_'):
                     func_name = node.name
                     break
 
-            if func_name and func_name in exec_globals and callable(exec_globals[func_name]):
-                target_fn = exec_globals[func_name]
+            if func_name:
                 fn_args = [arg.arg for arg in parsed.body[0].args.args] if hasattr(parsed.body[0], 'args') else []
-                
-                # Dry run
                 for n in n_values:
                     trial_times = []
                     for _ in range(num_trials):
                         args = _generate_mock_args(func_name, fn_args, n, time_complexity_o)
-                        start_ns = time.perf_counter_ns()
-                        try:
-                            target_fn(*args)
-                        except Exception:
-                            pass
-                        end_ns = time.perf_counter_ns()
-                        trial_times.append((end_ns - start_ns) / 1e6)  # to ms
-                    
-                    median_time = statistics.median(trial_times) if trial_times else 0.001
-                    measured_times_ms.append(round(median_time, 4))
-                is_live_run = True
+                        elapsed_ms = _run_in_subprocess(code, func_name, args, timeout_seconds=5)
+                        if elapsed_ms is not None:
+                            trial_times.append(elapsed_ms)
+                    if trial_times:
+                        measured_times_ms.append(round(statistics.median(trial_times), 4))
+                        is_live_run = True
+                    else:
+                        break
         except Exception:
             is_live_run = False
 
@@ -131,7 +172,7 @@ def run_empirical_benchmark(
             steps = 2 ** min(n, 20)
         else:
             steps = n
-            
+
         actual_steps_list.append(steps)
 
         # Theoretical reference values
@@ -150,9 +191,9 @@ def run_empirical_benchmark(
         theory_o2n.append(c_o2n)
 
         # Fallback simulation timing if live run didn't execute
-        if not is_live_run:
+        if not is_live_run or idx >= len(measured_times_ms):
             emp_ms = round(steps * 0.00004 + (0.001 * (idx % 3)), 4)
-            measured_times_ms.append(emp_ms)
+            measured_times_ms.append(emp_ms) if idx >= len(measured_times_ms) else None
         else:
             emp_ms = measured_times_ms[idx]
 
@@ -190,4 +231,3 @@ def run_empirical_benchmark(
             "all_scores": {k: round(v, 4) for k, v in r2_scores.items()}
         }
     }
-

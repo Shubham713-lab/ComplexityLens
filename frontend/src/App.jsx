@@ -10,7 +10,7 @@ import AIExplanationPanel from './components/AIExplanationPanel';
 import ReportModal from './components/ReportModal';
 import { Network, TrendingUp, ListTree, BookOpen, Sparkles, AlertCircle } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8008';
+const API_BASE = 'http://localhost:8000';
 
 const DEFAULT_PYTHON_CODE = `def two_sum(nums, target):
     n = len(nums)
