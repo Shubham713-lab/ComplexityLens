@@ -7,6 +7,7 @@ import GraphVisualizer from './components/GraphVisualizer';
 import GrowthChart from './components/GrowthChart';
 import OptimizationPanel from './components/OptimizationPanel';
 import AIExplanationPanel from './components/AIExplanationPanel';
+import ReportModal from './components/ReportModal';
 import { Network, TrendingUp, ListTree, BookOpen, Sparkles, AlertCircle } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8008';
@@ -28,6 +29,9 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [activeTab, setActiveTab] = useState('graph');
   const [apiKey, setApiKey] = useState('');
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [highlightLine, setHighlightLine] = useState(null);
+
   // Fetch presets from FastAPI backend
   useEffect(() => {
     fetch(`${API_BASE}/api/presets`)
@@ -76,6 +80,39 @@ export default function App() {
     }
   };
 
+  const [isBenchmarking, setIsBenchmarking] = useState(false);
+
+  const handleRunCustomBenchmark = async (maxN) => {
+    if (!analysis) return;
+    setIsBenchmarking(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/benchmark`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          time_complexity_o: analysis.time_complexity_o || 'O(N)',
+          max_n: maxN,
+          code,
+          language,
+          num_trials: 3
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAnalysis((prev) => ({
+          ...prev,
+          benchmark_data: data.benchmark_data,
+          is_live_execution: data.is_live_execution,
+          curve_fit: data.curve_fit
+        }));
+      }
+    } catch (err) {
+      console.error("Benchmark error:", err);
+    } finally {
+      setIsBenchmarking(false);
+    }
+  };
+
   // Run initial analysis on mount
   useEffect(() => {
     handleAnalyze();
@@ -93,6 +130,7 @@ export default function App() {
         onSelectPreset={(newCode) => setCode(newCode)}
         onAnalyze={handleAnalyze}
         isAnalyzing={isAnalyzing}
+        onExportReport={() => setIsReportOpen(true)}
         apiKey={apiKey}
         setApiKey={setApiKey}
       />
@@ -117,6 +155,7 @@ export default function App() {
               setCode={setCode}
               language={language}
               lineCosts={analysis?.line_costs}
+              highlightLine={highlightLine}
             />
           </div>
 
@@ -193,13 +232,20 @@ export default function App() {
             {/* Active Tab Panel Content - Fills remaining height */}
             <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
               {activeTab === 'graph' && (
-                <GraphVisualizer graphData={analysis?.graph} />
+                <GraphVisualizer
+                  graphData={analysis?.graph}
+                  onNodeClick={(line) => setHighlightLine(line)}
+                />
               )}
 
               {activeTab === 'growth' && (
                 <GrowthChart
                   benchmarkData={analysis?.benchmark_data}
                   timeComplexityO={analysis?.time_complexity_o}
+                  isLiveExecution={analysis?.is_live_execution}
+                  curveFit={analysis?.curve_fit}
+                  onRunCustomBenchmark={handleRunCustomBenchmark}
+                  isBenchmarking={isBenchmarking}
                 />
               )}
 
@@ -221,6 +267,15 @@ export default function App() {
           </div>
         </div>
       </main>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        code={code}
+        language={language}
+        analysis={analysis}
+      />
 
       {/* Compact Status Footer */}
       <footer className="shrink-0 py-1.5 border-t border-slate-800 text-center text-[11px] text-slate-500">

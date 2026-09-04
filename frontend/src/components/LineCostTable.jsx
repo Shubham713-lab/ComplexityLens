@@ -1,5 +1,6 @@
 import React from 'react';
 import { ListTree } from 'lucide-react';
+import MathView from './MathView';
 
 export default function LineCostTable({ lineCosts }) {
   if (!lineCosts || Object.keys(lineCosts).length === 0) {
@@ -53,11 +54,11 @@ export default function LineCostTable({ lineCosts }) {
               </span>
 
               <span
-                className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getCostBadgeColor(
+                className={`px-2.5 py-0.5 rounded-full text-xs font-bold border flex items-center ${getCostBadgeColor(
                   item.cost
                 )}`}
               >
-                {item.cost}
+                <MathView math={item.cost} />
               </span>
             </div>
           </div>

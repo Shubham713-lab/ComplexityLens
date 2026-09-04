@@ -26,6 +26,9 @@ class CodeAnalysisRequest(BaseModel):
 class BenchmarkRequest(BaseModel):
     time_complexity_o: str
     max_n: Optional[int] = 10000
+    code: Optional[str] = None
+    language: Optional[str] = "python"
+    num_trials: Optional[int] = 3
 
 class AIExplainRequest(BaseModel):
     code: str
@@ -58,8 +61,16 @@ def analyze_code(req: CodeAnalysisRequest):
         raise HTTPException(status_code=422, detail=analysis.get("error", "Failed to parse code"))
         
     # Generate benchmark dataset
-    benchmark_data = run_empirical_benchmark(analysis.get("time_complexity_o", "O(N)"))
-    analysis["benchmark_data"] = benchmark_data
+    benchmark_res = run_empirical_benchmark(
+        time_complexity_o=analysis.get("time_complexity_o", "O(N)"),
+        max_n=10000,
+        code=code,
+        language=lang,
+        num_trials=3
+    )
+    analysis["benchmark_data"] = benchmark_res["benchmark_data"]
+    analysis["is_live_execution"] = benchmark_res["is_live_execution"]
+    analysis["curve_fit"] = benchmark_res["curve_fit"]
     
     # Generate default AI/Rule explanation
     ai_data = generate_ai_explanation(
@@ -75,8 +86,14 @@ def analyze_code(req: CodeAnalysisRequest):
 
 @app.post("/api/benchmark")
 def get_benchmark(req: BenchmarkRequest):
-    data = run_empirical_benchmark(req.time_complexity_o, max_n=req.max_n or 10000)
-    return {"benchmark_data": data}
+    benchmark_res = run_empirical_benchmark(
+        time_complexity_o=req.time_complexity_o,
+        max_n=req.max_n or 10000,
+        code=req.code,
+        language=req.language or "python",
+        num_trials=req.num_trials or 3
+    )
+    return benchmark_res
 
 @app.post("/api/ai-explain")
 def get_ai_explanation(req: AIExplainRequest):

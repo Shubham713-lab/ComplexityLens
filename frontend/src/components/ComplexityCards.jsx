@@ -1,5 +1,6 @@
 import React from 'react';
 import { Clock, Layers, Calculator, Flame } from 'lucide-react';
+import MathView from './MathView';
 
 export default function ComplexityCards({ analysis }) {
   if (!analysis) {
@@ -31,32 +32,42 @@ export default function ComplexityCards({ analysis }) {
     return 'from-purple-500/20 to-indigo-500/20 text-purple-400 border-purple-500/30';
   };
 
+  const getGlowAnimationClass = (complexityStr) => {
+    if (complexityStr.includes('N²') || complexityStr.includes('N³') || complexityStr.includes('2^N')) return 'animate-glow-red';
+    if (complexityStr.includes('O(1)')) return 'animate-glow-emerald';
+    return 'animate-glow-cyan';
+  };
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      {/* Time Complexity Card */}
-      <div className={`glass-panel p-3.5 rounded-xl border bg-gradient-to-br ${getBadgeGradient(timeO)} shadow-md relative overflow-hidden`}>
+      {/* Time Complexity Card with Dynamic Pulsing Glow */}
+      <div className={`glass-panel p-3.5 rounded-xl border bg-gradient-to-br ${getBadgeGradient(timeO)} ${getGlowAnimationClass(timeO)} shadow-md relative overflow-hidden hover:scale-[1.02] transition-all duration-300`}>
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase tracking-wider opacity-80">Time Complexity</span>
-          <Clock className="w-3.5 h-3.5 opacity-70" />
+          <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Time Complexity</span>
+          <Clock className="w-3.5 h-3.5 opacity-70 animate-pulse" />
         </div>
         <div className="mt-1.5">
-          <div className="text-2xl font-black font-mono tracking-tight">{timeO}</div>
-          <div className="mt-1 flex items-center gap-1.5 text-[10px] font-mono opacity-80">
-            <span>{timeOmega}</span>
+          <div className="text-2xl font-black font-mono tracking-tight flex items-center">
+            <MathView math={timeO} />
+          </div>
+          <div className="mt-1 flex items-center gap-1.5 text-[11px] font-mono opacity-80">
+            <MathView math={timeOmega} />
             <span>•</span>
-            <span>{timeTheta}</span>
+            <MathView math={timeTheta} />
           </div>
         </div>
       </div>
 
       {/* Auxiliary Space Complexity Card */}
-      <div className="glass-panel p-3.5 rounded-xl border border-slate-800 shadow-md bg-slate-900/60 relative overflow-hidden">
+      <div className="glass-panel p-3.5 rounded-xl border border-slate-800 shadow-md bg-slate-900/60 relative overflow-hidden hover:scale-[1.02] transition-all duration-300">
         <div className="flex items-center justify-between text-slate-400">
-          <span className="text-[10px] font-semibold uppercase tracking-wider">Auxiliary Space</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">Auxiliary Space</span>
           <Layers className="w-3.5 h-3.5 text-purple-400" />
         </div>
         <div className="mt-1.5">
-          <div className="text-2xl font-black font-mono tracking-tight text-purple-400">{spaceO}</div>
+          <div className="text-2xl font-black font-mono tracking-tight text-purple-400 flex items-center">
+            <MathView math={spaceO} />
+          </div>
           <p className="mt-1 text-[10px] text-slate-400 truncate">
             {spaceO === 'O(1)' ? 'Constant memory' : 'Linear memory'}
           </p>
@@ -64,25 +75,29 @@ export default function ComplexityCards({ analysis }) {
       </div>
 
       {/* Operation Formula Card */}
-      <div className="glass-panel p-3.5 rounded-xl border border-slate-800 shadow-md bg-slate-900/60 relative overflow-hidden">
+      <div className="glass-panel p-3.5 rounded-xl border border-slate-800 shadow-md bg-slate-900/60 relative overflow-hidden hover:scale-[1.02] transition-all duration-300">
         <div className="flex items-center justify-between text-slate-400">
-          <span className="text-[10px] font-semibold uppercase tracking-wider">Step Formula</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">Step Formula</span>
           <Calculator className="w-3.5 h-3.5 text-cyan-400" />
         </div>
         <div className="mt-1.5">
-          <div className="text-base font-bold font-mono text-cyan-300 truncate" title={formula}>{formula}</div>
+          <div className="text-base font-bold font-mono text-cyan-300 truncate" title={formula}>
+            <MathView math={formula} />
+          </div>
           <p className="mt-1 text-[10px] text-slate-400">SymPy simplified sum</p>
         </div>
       </div>
 
       {/* Dominant Term Card */}
-      <div className="glass-panel p-3.5 rounded-xl border border-slate-800 shadow-md bg-slate-900/60 relative overflow-hidden">
+      <div className="glass-panel p-3.5 rounded-xl border border-slate-800 shadow-md bg-slate-900/60 relative overflow-hidden hover:scale-[1.02] transition-all duration-300">
         <div className="flex items-center justify-between text-slate-400">
-          <span className="text-[10px] font-semibold uppercase tracking-wider">Dominant Factor</span>
-          <Flame className="w-3.5 h-3.5 text-amber-400" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Dominant Factor</span>
+          <Flame className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
         </div>
         <div className="mt-1.5">
-          <div className="text-xl font-bold font-mono text-amber-400 tracking-tight">O({dominant})</div>
+          <div className="text-xl font-bold font-mono text-amber-400 tracking-tight flex items-center">
+            <MathView math={`O(${dominant})`} />
+          </div>
           <p className="mt-1 text-[10px] text-slate-400">Primary growth term</p>
         </div>
       </div>

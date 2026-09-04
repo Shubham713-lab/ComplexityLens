@@ -1,65 +1,216 @@
-# ComplexityLens — Backend Review & Fix Log
+# ComplexityLens 🔍⚡
 
-This log documents a backend review session performed after a collaborator restructured the project (new `main.py`, `analyzer/python_analyzer.py`, `analyzer/cpp_java_analyzer.py`, `analyzer/sympy_solver.py`, `analyzer/execution_benchmark.py`, `analyzer/ai_explainer.py`). Scope was intentionally limited to backend fixes; frontend issues are handed off separately below.
+> **Real-Time Algorithm Complexity Inspector, Control Flow Visualizer & Empirical Benchmarking Engine**
 
-## Fixed in this session
+ComplexityLens is a computer science platform that performs static AST code analysis, real-time asymptotic Big-O calculation, live CPU sandbox benchmarking, interactive Control Flow Graph (CFG) rendering, KaTeX mathematical typesetting, and AI-powered code optimization.
 
-### 1. Hardcoded API key removed (Critical security fix)
-- **Found:** a Gemini API key was hardcoded in two places — `backend/analyzer/ai_explainer.py` (`DEFAULT_GEMINI_KEY` constant, used as a silent fallback) and `frontend/src/App.jsx` (default value in a `useState` call, meaning it shipped to every browser that loaded the app).
-- **Fixed:** both hardcoded values removed. Backend now reads `GROQ_API_KEY` from environment only, with **no fallback default**. `.env` created (backend only, never committed) containing:
-  ```
-  GROQ_API_KEY=...
-  MODEL_NAME=openai/gpt-oss-20b
-  ```
-- **Verified:** `git check-ignore -v backend\.env` confirms `.env` is properly gitignored and will not be committed.
-- **Outstanding action:** the original exposed Gemini key should be rotated/revoked in Google AI Studio regardless of the code fix — it was exposed in git history and must be treated as already compromised.
+Designed for algorithm analysis, college practical lab submissions, viva examinations, and software performance audits.
 
-### 2. Migrated AI provider from Gemini to Groq
-- Replaced the `google.genai` SDK call in `ai_explainer.py` with `openai.OpenAI` pointed at Groq's OpenAI-compatible endpoint (`base_url="https://api.groq.com/openai/v1"`), using `response_format={"type": "json_object"}` for reliable structured output instead of manually stripping markdown fences from free text.
-- Model name now configurable via `MODEL_NAME` env var (default `openai/gpt-oss-20b`), not hardcoded.
-- **Verified working live** — confirmed `ai_source: "Groq AI (openai/gpt-oss-20b)"` in real API responses, with genuinely useful generated explanations/bottlenecks/optimized code.
-- The original rule-based fallback (`_rule_based_ai_fallback`) is preserved and still used as a fallback if the Groq call fails for any reason.
+---
 
-### 3. Math/builtin-call misclassification bug — found and fixed
-- **Problem:** the static analyzer (`python_analyzer.py`) only detects complexity from loops/recursion visible in the submitted code's AST. Code whose real cost is hidden inside a builtin or library call (e.g. `math.factorial(n)`, `sorted(arr)`) has zero visible loops, so it was incorrectly defaulting to `O(1)`.
-- **Fix:** added `KNOWN_BUILTIN_COSTS`, a small lookup table (`sorted`, `sort`, `min`, `max`, `sum`, `factorial`, `reversed`, etc.) checked only when the loop-based analysis found nothing (i.e. was about to report `O(1)`). This is a deterministic fix, not an AI call — the cost of these builtins is known, not ambiguous, so no tokens/AI needed for this class of bug.
-- **Regression-tested against 12 algorithms**, all passing:
+## 🌟 Key Features
 
-| Algorithm | Result |
+### 1. ⚡ Static AST & Asymptotic Complexity Analysis
+- Parses code structure using Abstract Syntax Trees (AST) for **Python**, **C++**, and **Java**.
+- Computes exact **Time Complexity** ($O(1)$, $O(\log N)$, $O(N)$, $O(N \log N)$, $O(N^2)$, $O(N^3)$, $O(2^N)$), **Best Case** ($\Omega$), and **Tight Bound** ($\Theta$).
+- Calculates **Auxiliary Space Complexity** and SymPy-simplified **Step Formulas** (e.g., $T(N) = \frac{N(N-1)}{2}$).
+- **Built-in Method Awareness**: Correctly detects algorithm costs hidden inside library functions (`sorted()`, `math.factorial()`, `min()`, `max()`).
+
+### 2. 🧪 Interactive Empirical Sandbox Benchmarking
+- **Real CPU Execution**: Executes user code in a sandboxed runner against dynamic input sizes ($N = 10 \dots 50,000$).
+- **High-Precision Timing**: Measures execution duration in nanoseconds using `time.perf_counter_ns()` across multiple trial iterations.
+- **$R^2$ Regression Curve Fitting**: Computes Coefficient of Determination ($R^2$) to evaluate percentage confidence matching measured timing against theoretical Big-O curves (e.g., `99.2% match to O(N²)`).
+- **Dual-Mode Visualizer**: Toggle between **Empirical Runtime (ms)** and **Theoretical Step Counts**.
+
+### 3. 🌿 Hierarchical AST Control Flow & Call Graph
+- Built with **ReactFlow** featuring dynamic $X$-indentation for nested loop depths.
+- **Animated Loopback Edges**: Curved dashed arrows (`Loop Iteration`) illustrating loop iterations and recursion.
+- **🎯 Graph-to-Code Click Synchronization**: Clicking any graph node automatically scrolls and highlights that line in the Monaco Code Editor.
+- Custom color-coded node cards displaying line numbers (`L:4`), statement snippets, and complexity badges.
+
+### 4. 🔥 Monaco Editor Line Heatmap
+- Embedded **Monaco Code Editor** with custom line decoration heatmaps:
+  - 🔴 **Red Glow (`O(N²)` / `O(2^N)`)**: Inner high-cost loops and exponential recursion.
+  - 🟡 **Amber Glow (`O(N)`)**: Outer linear loop structures.
+  - 🔵 **Cyan Glow (`O(log N)`)**: Logarithmic partitioning steps.
+  - 🟢 **Emerald Tint (`O(1)`)**: Constant-time statements.
+- Developer typography with **JetBrains Mono** font and code ligatures enabled (`!=`, `==`, `<=`, `=>`).
+
+### 5. 📐 KaTeX Mathematical Typesetting
+- Renders Big-O notation, $\Omega$, $\Theta$, step formulas, and line cost badges into mathematical equations ($T(N) = \frac{N(N-1)}{2} \in O(N^2)$) using **KaTeX**.
+
+### 6. 📄 CS Lab Audit Report Export (Printable PDF)
+- One-click PDF Lab Report generation (`window.print()`).
+- Print-optimized stylesheet (`@media print`) that formats background colors, code blocks, complexity matrices, empirical benchmark tables, and line-cost annotations on clean white paper for lab submissions.
+
+### 7. 🤖 Groq AI Optimization Engine
+- Powered by **Groq LLaMA/GPT models** (via OpenAI-compatible API) for real-time code bottleneck identification and refactoring suggestions.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies Used |
 |---|---|
-| Binary search | O(log N) ✅ |
-| Merge sort | O(N log N) ✅ |
-| `math.factorial(n)` | O(N) ✅ (was O(1) before fix) |
-| `sorted(arr)` | O(N log N) ✅ (was O(1) before fix) |
-| Memoized Fibonacci (`@lru_cache`) | O(N) ✅ |
-| C++ nested loop | O(N²) ✅ |
-| Two-list nested loop (independent sizes) | O(M · N) ✅ |
-| `len(arr)` alone | O(1) ✅ (confirms no false positives) |
-| `sum()` inside an existing loop | O(N) ✅ (confirms override doesn't override correct results) |
-| Quicksort (recursion + builtins) | O(N log N) ✅ (confirms recursion path unaffected) |
-| Plain arithmetic, no builtins | O(1) ✅ |
-| `max(arr)` | O(N) ✅ |
+| **Frontend UI** | React 18, Vite, TailwindCSS, Lucide Icons |
+| **Code Editor** | `@monaco-editor/react` (JetBrains Mono, Custom Heatmap Line Decorations) |
+| **Graph Engine** | `@xyflow/react` (ReactFlow), SVG Smoothstep Bezier Edges |
+| **Data Viz** | Recharts (Responsive Line Charts, Dual Axis Bounds) |
+| **Math Typesetting** | KaTeX (`katex`) |
+| **Backend API** | Python 3.10+, FastAPI, Uvicorn, Pydantic, CORS Middleware |
+| **Analysis Engine** | AST (Abstract Syntax Tree), SymPy (Symbolic Mathematics) |
+| **AI Provider** | Groq API (`groq-sdk` / `openai` client) |
 
-- **Bonus finding, not yet acted on:** in the `sorted()` test, the Groq AI explanation text independently identified the correct answer in its prose *before* this fix was applied — it explicitly said the O(1) structured result was wrong. This suggests a real future architecture opportunity: use disagreement between the deterministic analyzer and the AI's explanation as a signal to flag low-confidence results, rather than only trusting the structured field. Not built yet — worth discussing before deciding whether/how to implement.
+---
 
-## Known issues — handed to frontend (not fixed in this session)
+## 📁 Project Structure
 
-- **"Failed to fetch" error when clicking Analyze in the running app.** Backend was confirmed running (`uvicorn main:app --reload`) during this session's testing via Swagger directly, so this is likely either: the frontend pointed at a wrong/stale backend URL, or a CORS/network issue specific to the frontend's fetch call. Needs frontend-side debugging (check the failed request's target URL in DevTools Network tab).
-- **UI still shows "Add Gemini Key" button/label** — should be updated to reflect the Groq migration, or removed if the key is meant to be server-side only now (recommended, since client-supplied keys re-introduce the "key visible in browser" risk this session just fixed on the backend default).
-
-## Environment setup (for anyone pulling this)
-
-```bash
-cd backend
-pip install -r requirements.txt
-# create backend/.env with:
-# GROQ_API_KEY=your_key_here
-# MODEL_NAME=openai/gpt-oss-20b
-uvicorn main:app --reload
+```
+ComplexityLens/
+├── backend/
+│   ├── analyzer/
+│   │   ├── __init__.py
+│   │   ├── ai_explainer.py          # Groq AI & Rule-based Explanation Engine
+│   │   ├── cpp_java_analyzer.py      # C++ / Java Regex & Tree Complexity Inspector
+│   │   ├── execution_benchmark.py   # Empirical Sandbox Runner & R² Curve Fitter
+│   │   ├── python_analyzer.py       # Python AST Visitor & Graph Generator
+│   │   └── sympy_solver.py          # Symbolic Math Simplifier for T(N)
+│   ├── main.py                      # FastAPI REST API Endpoints
+│   ├── requirements.txt             # Python Backend Dependencies
+│   └── .env                         # Environment variables (GROQ_API_KEY)
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── AIExplanationPanel.jsx
+│   │   │   ├── CodeEditor.jsx        # Monaco Editor with Heatmap & Reveal Line
+│   │   │   ├── ComplexityCards.jsx   # Pulsing Glow Summary Cards
+│   │   │   ├── GraphVisualizer.jsx   # Interactive AST Flowchart Graph
+│   │   │   ├── GrowthChart.jsx       # Benchmark Visualizer & N-Slider
+│   │   │   ├── Header.jsx           # Controls Bar & Export Trigger
+│   │   │   ├── LineCostTable.jsx     # Line-by-Line Cost Table
+│   │   │   ├── MathView.jsx          # KaTeX LaTeX Equation Renderer
+│   │   │   ├── OptimizationPanel.jsx # AI Refactored Code Viewer
+│   │   │   └── ReportModal.jsx       # Printable PDF Lab Audit Report Modal
+│   │   ├── App.jsx                  # Main Layout & State Orchestration
+│   │   ├── index.css                # Glassmorphic Styles, Fonts & Print Rules
+│   │   └── main.jsx
+│   ├── index.html                   # Plus Jakarta Sans, JetBrains Mono & KaTeX CDN
+│   ├── package.json
+│   ├── tailwind.config.js
+│   └── vite.config.js
+└── README.md
 ```
 
+---
+
+## 🚀 Quickstart & Installation
+
+### Prerequisites
+- **Python 3.10+**
+- **Node.js 18+** & **npm**
+
+---
+
+### 1. Backend Setup
+
 ```bash
+# Navigate to backend directory
+cd backend
+
+# Create virtual environment (optional but recommended)
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create backend/.env file with your Groq API key
+echo "GROQ_API_KEY=your_groq_api_key_here" > .env
+echo "MODEL_NAME=openai/gpt-oss-20b" >> .env
+
+# Start FastAPI server
+uvicorn main:app --host 0.0.0.0 --port 8008 --reload
+```
+Backend API server will start on `http://localhost:8008`.
+
+---
+
+### 2. Frontend Setup
+
+```bash
+# Navigate to frontend directory
 cd frontend
+
+# Install npm packages
 npm install
+
+# Start Vite dev server
 npm run dev
 ```
+Frontend Web App will open on `http://localhost:5173`.
+
+---
+
+## 📡 API Reference
+
+### `POST /api/analyze`
+Analyzes code and returns asymptotic complexity metrics, line costs, AST graph nodes/edges, benchmark datasets, and AI explanation summaries.
+
+**Request Body:**
+```json
+{
+  "code": "def two_sum(nums, target):\n    n = len(nums)\n    for i in range(n):\n        for j in range(i + 1, n):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n    return []",
+  "language": "python"
+}
+```
+
+**Response Sample:**
+```json
+{
+  "time_complexity_o": "O(N²)",
+  "time_complexity_omega": "Ω(1)",
+  "time_complexity_theta": "Θ(N²)",
+  "space_complexity": "O(1)",
+  "formula_str": "T(N) = N*(N - 1)/2",
+  "dominant_term": "N²",
+  "is_live_execution": true,
+  "curve_fit": {
+    "best_fit_complexity": "O(N²)",
+    "r2_score": 0.994,
+    "fit_percentage": 99.4
+  }
+}
+```
+
+---
+
+### `POST /api/benchmark`
+Runs empirical timing for a custom $N_{max}$ range and number of trial iterations.
+
+---
+
+## 📚 Preset Algorithm Library
+
+ComplexityLens ships with classic Computer Science Data Structures & Algorithms presets:
+- **Two Sum (Nested Loop $O(N^2)$ vs Hash Map $O(N)$)**
+- **Merge Sort ($O(N \log N)$)**
+- **Binary Search ($O(\log N)$)**
+- **Matrix Multiplication ($O(N^3)$)**
+- **Recursive Fibonacci ($O(2^N)$)**
+- **Bubble Sort ($O(N^2)$)**
+
+---
+
+## 🎓 College Viva Q&A Guide
+
+**Q1: How does static AST analysis differ from empirical benchmarking?**  
+*Answer:* Static analysis inspects source code structure (AST nodes, loop nesting levels, recursion branches) without executing the code, providing exact theoretical bounds ($O(N^2)$). Empirical benchmarking runs actual code timing across increasing input sizes ($N = 10 \dots 50,000$) to measure real CPU milliseconds and validate theoretical models using $R^2$ regression scoring.
+
+**Q2: What is the purpose of the Coefficient of Determination ($R^2$) score?**  
+*Answer:* The $R^2$ score measures how closely actual measured CPU timing data fits standard Big-O growth curves ($O(1)$, $O(\log N)$, $O(N)$, $O(N \log N)$, $O(N^2)$). An $R^2$ score close to $1.0$ ($99\%+$) proves that empirical timing matches theoretical expectations.
+
+---
+
+## 📄 License
+Created for academic demonstration and software engineering performance evaluation. Built under the MIT License.

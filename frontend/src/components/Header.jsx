@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Cpu, Play, Sparkles, Key, FileCode, Check } from 'lucide-react';
+import { Cpu, Play, Sparkles, Key, FileDown, Check } from 'lucide-react';
 
 export default function Header({
   language,
@@ -8,6 +8,7 @@ export default function Header({
   onSelectPreset,
   onAnalyze,
   isAnalyzing,
+  onExportReport,
   apiKey,
   setApiKey
 }) {
@@ -72,7 +73,17 @@ export default function Header({
           </select>
         </div>
 
-        {/* Gemini API Key Modal Button */}
+        {/* Export PDF Lab Report Button */}
+        <button
+          onClick={onExportReport}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-purple-500/10 border border-purple-500/30 text-purple-300 hover:bg-purple-500/20 active:scale-95 transition-all cursor-pointer shadow-sm"
+          title="Generate printable PDF CS Lab Audit Report for assignments and practical reviews"
+        >
+          <FileDown className="w-3.5 h-3.5 text-purple-400" />
+          <span>Export PDF Report</span>
+        </button>
+
+        {/* AI Key Config Button */}
         <button
           onClick={() => setShowKeyModal(true)}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-all ${
@@ -80,10 +91,10 @@ export default function Header({
               ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
               : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
-          title="Configure Gemini API Key for dynamic AI explanations"
+          title="Configure AI API Key for dynamic explanation summaries"
         >
           <Key className="w-3.5 h-3.5" />
-          <span>{apiKey ? 'Gemini Key Configured' : 'Add Gemini Key'}</span>
+          <span>{apiKey ? 'AI Key Configured' : 'AI Config'}</span>
         </button>
 
         {/* Analyze Code Button */}

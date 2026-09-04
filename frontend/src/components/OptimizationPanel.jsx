@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lightbulb, ArrowRight, Check, Copy, Sparkles } from 'lucide-react';
+import MathView from './MathView';
 
 export default function OptimizationPanel({ aiExplanation, onApplyCode }) {
   const [copied, setCopied] = useState(false);
@@ -44,7 +45,19 @@ export default function OptimizationPanel({ aiExplanation, onApplyCode }) {
             {suggestions.map((item, idx) => (
               <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-200 bg-slate-900/70 p-3 rounded-xl border border-slate-800">
                 <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{item}</span>
+                <span className="leading-relaxed flex-1">
+                  {item.includes('O(') || item.includes('N²') ? (
+                    item.split(/(O\([^)]+\)|N²|O\(1\)|O\(N\))/g).map((part, pIdx) =>
+                      part.startsWith('O(') || part === 'N²' ? (
+                        <MathView key={pIdx} math={part} className="px-1" />
+                      ) : (
+                        part
+                      )
+                    )
+                  ) : (
+                    item
+                  )}
+                </span>
               </li>
             ))}
           </ul>
@@ -61,7 +74,7 @@ export default function OptimizationPanel({ aiExplanation, onApplyCode }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopy}
-                className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs hover:bg-slate-800 flex items-center gap-1.5 transition-colors"
+                className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs hover:bg-slate-800 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -69,7 +82,7 @@ export default function OptimizationPanel({ aiExplanation, onApplyCode }) {
 
               <button
                 onClick={() => onApplyCode(optimizedCode)}
-                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-colors"
+                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-colors cursor-pointer"
               >
                 <span>Apply Code</span>
                 <ArrowRight className="w-3.5 h-3.5" />

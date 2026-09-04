@@ -359,60 +359,131 @@ class PythonCodeAnalyzer(ast.NodeVisitor):
         self.nodes.append({
             "id": root_id,
             "type": "startNode",
-            "data": {"label": "Program Start", "type": "Start"},
+            "data": {
+                "label": "Program Start",
+                "line": 1,
+                "snippet": "Entry Point",
+                "cost": "O(1)"
+            },
             "position": {"x": 250, "y": 20}
         })
         
         y_offset = 100
         prev_id = root_id
-        
-        for idx, node in enumerate(ast.iter_child_nodes(self.tree)):
-            curr_id = f"node_{idx}"
-            node_label = ast.unparse(node) if hasattr(ast, 'unparse') else type(node).__name__
-            if len(node_label) > 30:
-                node_label = node_label[:27] + "..."
-                
-            node_type = "statementNode"
-            if isinstance(node, (ast.For, ast.While)):
-                node_type = "loopNode"
-                node_label = f"Loop (Depth {self._get_line_depth(getattr(node, 'lineno', 1))})"
-            elif isinstance(node, ast.If):
-                node_type = "branchNode"
-                node_label = "If Condition"
-            elif isinstance(node, ast.FunctionDef):
-                node_type = "funcNode"
-                node_label = f"def {node.name}(...)"
-                if self.has_recursion:
-                    node_type = "recursionNode"
-                    node_label = f"Recursive {node.name}(...)"
-                    
-            self.nodes.append({
-                "id": curr_id,
-                "type": node_type,
-                "data": {"label": node_label, "type": node_type.replace("Node", "")},
-                "position": {"x": 250, "y": y_offset}
-            })
-            
-            self.edges.append({
-                "id": f"edge_{prev_id}_{curr_id}",
-                "source": prev_id,
-                "target": curr_id,
-                "animated": node_type in ("loopNode", "recursionNode")
-            })
-            
-            prev_id = curr_id
-            y_offset += 90
-            
+        node_counter = 0
+
+        def traverse_ast_body(statements, parent_id, depth=0, current_y=100):
+            nonlocal node_counter
+            last_id = parent_id
+            cy = current_y
+
+            for stmt in statements:
+                lineno = getattr(stmt, 'lineno', 1)
+                line_info = self.line_costs.get(lineno, {})
+                cost = line_info.get('cost', 'O(1)')
+
+                snippet = ""
+                if hasattr(ast, 'unparse'):
+                    try:
+                        snippet = ast.unparse(stmt).split('\n')[0]
+                    except Exception:
+                        snippet = type(stmt).__name__
+                else:
+                    snippet = type(stmt).__name__
+
+                if len(snippet) > 32:
+                    snippet = snippet[:30] + "..."
+
+                node_id = f"node_{node_counter}"
+                node_counter += 1
+
+                node_type = "statementNode"
+                label = f"Statement"
+
+                if isinstance(stmt, (ast.For, ast.While)):
+                    node_type = "loopNode"
+                    label = f"Loop ({cost})"
+                elif isinstance(stmt, ast.If):
+                    node_type = "branchNode"
+                    label = "If Branch"
+                elif isinstance(stmt, ast.FunctionDef):
+                    node_type = "recursionNode" if self.has_recursion else "funcNode"
+                    label = f"def {stmt.name}(...)"
+
+                x_pos = 250 + (depth * 100)
+
+                self.nodes.append({
+                    "id": node_id,
+                    "type": node_type,
+                    "data": {
+                        "label": label,
+                        "line": lineno,
+                        "snippet": snippet,
+                        "cost": cost,
+                        "depth": depth
+                    },
+                    "position": {"x": x_pos, "y": cy}
+                })
+
+                # Connect parent to current node
+                self.edges.append({
+                    "id": f"edge_{last_id}_{node_id}",
+                    "source": last_id,
+                    "target": node_id,
+                    "animated": node_type in ("loopNode", "recursionNode"),
+                    "style": {"stroke": "#38bdf8" if node_type == "loopNode" else "#94a3b8"}
+                })
+
+                last_id = node_id
+                cy += 95
+
+                # Handle child body statements recursively for Functions, Loops, Ifs
+                body_stmts = getattr(stmt, 'body', [])
+                if isinstance(stmt, ast.FunctionDef):
+                    # Traverse function body
+                    last_id, cy = traverse_ast_body(body_stmts, node_id, depth, cy)
+                elif isinstance(stmt, (ast.For, ast.While)):
+                    loop_head_id = node_id
+                    body_last_id, cy = traverse_ast_body(body_stmts, node_id, depth + 1, cy)
+                    # Add animated loopback edge from body end back to loop head
+                    self.edges.append({
+                        "id": f"loopback_{body_last_id}_{loop_head_id}",
+                        "source": body_last_id,
+                        "target": loop_head_id,
+                        "animated": True,
+                        "label": "Loop Iteration",
+                        "style": {"stroke": "#fb7185", "strokeDasharray": "5 5"}
+                    })
+                    last_id = body_last_id
+                elif isinstance(stmt, ast.If):
+                    if_last, cy = traverse_ast_body(body_stmts, node_id, depth + 1, cy)
+                    last_id = if_last
+
+            return last_id, cy
+
+        top_statements = []
+        if isinstance(self.tree, ast.Module):
+            top_statements = self.tree.body
+        else:
+            top_statements = [self.tree]
+
+        last_node_id, final_y = traverse_ast_body(top_statements, root_id, 0, y_offset)
+
         end_id = "node_end"
         self.nodes.append({
             "id": end_id,
             "type": "endNode",
-            "data": {"label": "Program End", "type": "End"},
-            "position": {"x": 250, "y": y_offset}
+            "data": {
+                "label": "Program End",
+                "line": len(self.code.split('\n')),
+                "snippet": "Return / Finish",
+                "cost": "O(1)"
+            },
+            "position": {"x": 250, "y": final_y + 20}
         })
         self.edges.append({
-            "id": f"edge_{prev_id}_{end_id}",
-            "source": prev_id,
+            "id": f"edge_{last_node_id}_{end_id}",
+            "source": last_node_id,
             "target": end_id
         })
 
