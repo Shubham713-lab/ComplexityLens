@@ -25,6 +25,7 @@ export function asciiToLatex(mathStr) {
   str = str.replace(/log2/g, '\\log_2 ');
   str = str.replace(/log N/g, '\\log N');
   str = str.replace(/\blog\b/g, '\\log ');
+  str = str.replace(/^T\(N\)\s*=\s*/g, 'T = ');
 
   // Fractional formulas e.g. N*(N-1)/2 -> \frac{N(N-1)}{2}
   str = str.replace(/([A-Za-z0-9_*()+-]+)\/([0-9]+)/g, '\\frac{$1}{$2}');

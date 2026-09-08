@@ -6,16 +6,24 @@
 
 :root {
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-  color-scheme: dark;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #0b0f19;
-  color: #f8fafc;
+  background-color: #f1f5f9;
+  background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.05) 0px, transparent 50%);
+  color: #0f172a;
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dark body {
+  background-color: #0b0f19;
+  background-image: none;
+  color: #f8fafc;
 }
 
 /* Developer Monospace Font & Ligatures */
@@ -30,31 +38,56 @@ code, pre, .font-mono {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
 
 /* Glassmorphism utility */
 .glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 4px 15px -1px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+}
+
+.dark .glass-panel {
   background: rgba(19, 27, 46, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
 }
 
 .glass-card {
+  background: #f8fafc;
+  backdrop-filter: blur(8px);
+  border: 1px solid #e2e8f0;
+}
+
+.dark .glass-card {
   background: rgba(30, 41, 59, 0.5);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* KaTeX Custom Polish for Dark UI */
+/* KaTeX Custom Polish */
 .katex {
   font-size: 1.05em;
   color: inherit;
@@ -68,69 +101,156 @@ code, pre, .font-mono {
   font-style: italic;
 }
 
-/* React Flow Dark Styling */
+/* React Flow Controls Styling */
+.react-flow__controls {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden;
+}
+
+.dark .react-flow__controls {
+  background: #0f172a !important;
+  border: 1px solid #1e293b !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+.react-flow__controls-button {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #0284c7 !important;
+  fill: #0284c7 !important;
+  width: 30px !important;
+  height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.dark .react-flow__controls-button {
+  background: #0f172a !important;
+  border-bottom: 1px solid #1e293b !important;
+  color: #38bdf8 !important;
+  fill: #38bdf8 !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #f1f5f9 !important;
+  color: #0369a1 !important;
+  fill: #0369a1 !important;
+}
+
+.dark .react-flow__controls-button:hover {
+  background: #1e293b !important;
+  color: #06b6d4 !important;
+  fill: #06b6d4 !important;
+}
+
+.react-flow__controls-button svg {
+  fill: currentColor !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+}
+
 .react-flow__node {
   border-radius: 8px !important;
   font-family: 'JetBrains Mono', monospace !important;
   font-size: 12px !important;
   padding: 10px 14px !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
-  color: #f8fafc !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
 }
 
 .react-flow__node-startNode {
   background: linear-gradient(135deg, #059669, #10b981) !important;
   border: 1px solid #34d399 !important;
+  color: #ffffff !important;
 }
 
 .react-flow__node-endNode {
   background: linear-gradient(135deg, #e11d48, #f43f5e) !important;
   border: 1px solid #fb7185 !important;
+  color: #ffffff !important;
 }
 
 .react-flow__node-loopNode {
   background: linear-gradient(135deg, #0284c7, #38bdf8) !important;
   border: 1px solid #7dd3fc !important;
+  color: #ffffff !important;
 }
 
 .react-flow__node-branchNode {
   background: linear-gradient(135deg, #d97706, #f59e0b) !important;
   border: 1px solid #fcd34d !important;
+  color: #ffffff !important;
 }
 
 .react-flow__node-recursionNode {
   background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
   border: 1px solid #c084fc !important;
+  color: #ffffff !important;
 }
 
 .react-flow__node-statementNode {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+.dark .react-flow__node-statementNode {
   background: #1e293b !important;
   border: 1px solid #334155 !important;
+  color: #f8fafc !important;
 }
 
 .react-flow__edge-path {
-  stroke: #475569 !important;
+  stroke: #94a3b8 !important;
   stroke-width: 2px !important;
+}
+
+.dark .react-flow__edge-path {
+  stroke: #475569 !important;
 }
 
 /* Monaco Line Heatmap Decorations */
 .line-heatmap-high {
-  background: rgba(244, 63, 94, 0.15) !important;
+  background: rgba(244, 63, 94, 0.12) !important;
+  border-left: 3px solid #e11d48 !important;
+}
+
+.dark .line-heatmap-high {
+  background: rgba(244, 63, 94, 0.18) !important;
   border-left: 3px solid #f43f5e !important;
 }
 
 .line-heatmap-mid {
   background: rgba(245, 158, 11, 0.12) !important;
+  border-left: 3px solid #d97706 !important;
+}
+
+.dark .line-heatmap-mid {
+  background: rgba(245, 158, 11, 0.15) !important;
   border-left: 3px solid #f59e0b !important;
 }
 
 .line-heatmap-log {
   background: rgba(6, 182, 212, 0.12) !important;
+  border-left: 3px solid #0891b2 !important;
+}
+
+.dark .line-heatmap-log {
+  background: rgba(6, 182, 212, 0.15) !important;
   border-left: 3px solid #06b6d4 !important;
 }
 
 .line-heatmap-low {
   background: rgba(16, 185, 129, 0.08) !important;
+  border-left: 3px solid #059669 !important;
+}
+
+.dark .line-heatmap-low {
+  background: rgba(16, 185, 129, 0.1) !important;
   border-left: 3px solid #10b981 !important;
 }
 
@@ -160,22 +280,4 @@ code, pre, .font-mono {
 
 .animate-glow-emerald {
   animation: glow-pulse-emerald 3s infinite ease-in-out;
-}
-
-/* Print Styles for PDF Report Export */
-@media print {
-  body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-  }
-  body > div > header,
-  body > div > main,
-  body > div > footer {
-    display: none !important;
-  }
-  .glass-panel {
-    background: #ffffff !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
 }

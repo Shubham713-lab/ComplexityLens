@@ -42,8 +42,8 @@ Designed for algorithm analysis.
 - One-click PDF Lab Report generation (`window.print()`).
 - Print-optimized stylesheet (`@media print`) that formats background colors, code blocks, complexity matrices, empirical benchmark tables, and line-cost annotations on clean white paper for lab submissions.
 
-### 7. Gemini AI Optimization Engine
-- Powered by **Gemini LLaMA/GPT models** (via OpenAI-compatible API) for real-time code bottleneck identification and refactoring suggestions.
+### 7. Groq AI Optimization Engine
+- Powered by **Groq LLaMA/GPT models** (via OpenAI-compatible API) for real-time code bottleneck identification and refactoring suggestions.
 
 ---
 
@@ -58,7 +58,7 @@ Designed for algorithm analysis.
 | **Math Typesetting** | KaTeX (`katex`) |
 | **Backend API** | Python 3.10+, FastAPI, Uvicorn, Pydantic, CORS Middleware |
 | **Analysis Engine** | AST (Abstract Syntax Tree), SymPy (Symbolic Mathematics) |
-| **AI Provider** | Gemini API (`Gemini-sdk` / `openai` client) |
+| **AI Provider** | Groq API (`Groq-sdk` / `openai` client) |
 
 ---
 
@@ -69,14 +69,14 @@ ComplexityLens/
 ├── backend/
 │   ├── analyzer/
 │   │   ├── __init__.py
-│   │   ├── ai_explainer.py          # Gemini AI & Rule-based Explanation Engine
+│   │   ├── ai_explainer.py          # Groq AI & Rule-based Explanation Engine
 │   │   ├── cpp_java_analyzer.py      # C++ / Java Regex & Tree Complexity Inspector
 │   │   ├── execution_benchmark.py   # Empirical Sandbox Runner & R² Curve Fitter
 │   │   ├── python_analyzer.py       # Python AST Visitor & Graph Generator
 │   │   └── sympy_solver.py          # Symbolic Math Simplifier for T(N)
 │   ├── main.py                      # FastAPI REST API Endpoints
 │   ├── requirements.txt             # Python Backend Dependencies
-│   └── .env                         # Environment variables (Gemini_API_KEY)
+│   └── .env                         # Environment variables (Groq_API_KEY)
 │
 ├── frontend/
 │   ├── src/
@@ -124,8 +124,8 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Create backend/.env file with your Gemini API key
-echo "Gemini_API_KEY=your_Gemini_api_key_here" > .env
+# Create backend/.env file with your Groq API key
+echo "Groq_API_KEY=your_Groq_api_key_here" > .env
 echo "MODEL_NAME=openai/gpt-oss-20b" >> .env
 
 # Start FastAPI server

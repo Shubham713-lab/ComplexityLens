@@ -1,62 +1,16 @@
-import os
-import json
-from typing import Dict, Any, Optional
-from dotenv import load_dotenv
-from openai import OpenAI
-
-load_dotenv()
-
+from typing import Dict, Any
 
 def generate_ai_explanation(
     code: str,
     language: str,
     time_o: str,
     space_o: str,
-    formula: str,
-    api_key: Optional[str] = None
+    formula: str
 ) -> Dict[str, Any]:
     """
-    Use Groq API (OpenAI-compatible) or fallback rule engine to explain complexity,
-    highlight bottlenecks, and suggest optimized code.
+    Generate natural language complexity explanations, structural bottleneck callouts,
+    and optimization recommendations using the built-in static analysis engine.
     """
-    effective_api_key = api_key or os.environ.get("GROQ_API_KEY")
-    model_name = os.environ.get("MODEL_NAME", "openai/gpt-oss-20b")
-
-    if effective_api_key:
-        try:
-            client = OpenAI(
-                api_key=effective_api_key,
-                base_url="https://api.groq.com/openai/v1",
-            )
-            prompt = f"""You are a world-class algorithm complexity expert.
-Analyze the following {language} code: {code}
-
-Detected Time Complexity: {time_o}
-Detected Space Complexity: {space_o}
-Operation Formula: {formula}
-
-Please provide a JSON object (and nothing else) with these exact keys:
-- "natural_explanation": A clear, educational 2-paragraph explanation of why the code has time complexity {time_o} and space complexity {space_o}.
-- "bottlenecks": A list of 2-4 string callouts describing specific structural performance bottlenecks.
-- "optimization_suggestions": A list of 2-4 actionable step-by-step optimization strategies.
-- "optimized_code": A rewritten, optimized version of the code that achieves better complexity if possible, or clean best-practice version.
-"""
-            response = client.chat.completions.create(
-                model=model_name,
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-            )
-            text = response.choices[0].message.content.strip()
-            parsed = json.loads(text)
-            parsed["ai_source"] = f"Groq AI ({model_name})"
-            return parsed
-        except Exception as e:
-            print(f"Groq API call failed, falling back to rule engine: {e}")
-
-    # Intelligent Fallback Engine
-    return _rule_based_ai_fallback(code, language, time_o, space_o, formula)
-
-def _rule_based_ai_fallback(code: str, language: str, time_o: str, space_o: str, formula: str) -> Dict[str, Any]:
     explanation = (
         f"The submitted {language.title()} code exhibits an overall asymptotic time complexity of {time_o} "
         f"and an auxiliary space complexity of {space_o}. The total operation count as a function of input size N is governed by {formula}.\n\n"
@@ -154,5 +108,5 @@ def _rule_based_ai_fallback(code: str, language: str, time_o: str, space_o: str,
         "bottlenecks": bottlenecks,
         "optimization_suggestions": optimizations,
         "optimized_code": optimized_code,
-        "ai_source": "Built-in Rule Engine"
+        "ai_source": "Built-in Analysis Engine"
     }

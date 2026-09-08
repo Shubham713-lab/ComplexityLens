@@ -36,7 +36,6 @@ class AIExplainRequest(BaseModel):
     time_complexity_o: str
     space_complexity: str
     formula: str
-    api_key: Optional[str] = None
 
 @app.get("/")
 def read_root():
@@ -102,8 +101,7 @@ def get_ai_explanation(req: AIExplainRequest):
         language=req.language,
         time_o=req.time_complexity_o,
         space_o=req.space_complexity,
-        formula=req.formula,
-        api_key=req.api_key
+        formula=req.formula
     )
     return ai_res
 

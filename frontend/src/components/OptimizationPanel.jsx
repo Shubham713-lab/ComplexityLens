@@ -7,7 +7,7 @@ export default function OptimizationPanel({ aiExplanation, onApplyCode }) {
 
   if (!aiExplanation) {
     return (
-      <div className="glass-panel h-full flex-1 rounded-xl border border-slate-800 flex items-center justify-center text-slate-400 text-sm">
+      <div className="glass-panel h-full flex-1 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 text-xs">
         Optimization recommendations will be generated after code analysis.
       </div>
     );
@@ -24,15 +24,15 @@ export default function OptimizationPanel({ aiExplanation, onApplyCode }) {
   };
 
   return (
-    <div className="glass-panel h-full flex-1 rounded-xl border border-slate-800 overflow-y-auto shadow-xl space-y-4 p-5 min-h-0">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+    <div className="glass-panel h-full flex-1 rounded-xl border border-slate-200 dark:border-slate-800 overflow-y-auto shadow-xl space-y-4 p-5 min-h-0 bg-white/80 dark:bg-slate-950/60">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-amber-400" />
-          <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
-            Algorithmic Optimization Engine
+          <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+            Optimizations
           </h3>
         </div>
-        <span className="text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 font-medium">
+        <span className="text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 font-medium">
           {source}
         </span>
       </div>
@@ -40,11 +40,11 @@ export default function OptimizationPanel({ aiExplanation, onApplyCode }) {
       {/* Actionable Suggestions */}
       {suggestions.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs sm:text-sm font-bold text-slate-200">Suggested Improvements:</h4>
+          <h4 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">Suggested Improvements:</h4>
           <ul className="space-y-2">
             {suggestions.map((item, idx) => (
-              <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-200 bg-slate-900/70 p-3 rounded-xl border border-slate-800">
-                <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/70 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <span className="leading-relaxed flex-1">
                   {item.includes('O(') || item.includes('N²') ? (
                     item.split(/(O\([^)]+\)|N²|O\(1\)|O\(N\))/g).map((part, pIdx) =>
@@ -68,21 +68,21 @@ export default function OptimizationPanel({ aiExplanation, onApplyCode }) {
       {optimizedCode && (
         <div className="space-y-2 pt-1">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs sm:text-sm font-bold text-emerald-400 flex items-center gap-1.5">
-              <span>Optimized Implementation</span>
+            <h4 className="text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+              <span>Optimized Code</span>
             </h4>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopy}
-                className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs hover:bg-slate-800 flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? 'Copied' : 'Copy'}</span>
               </button>
 
               <button
                 onClick={() => onApplyCode(optimizedCode)}
-                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-colors cursor-pointer"
+                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
               >
                 <span>Apply Code</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -90,7 +90,7 @@ export default function OptimizationPanel({ aiExplanation, onApplyCode }) {
             </div>
           </div>
 
-          <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 font-mono text-xs sm:text-sm overflow-x-auto max-h-[220px] leading-relaxed">
+          <pre className="p-4 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-mono text-xs sm:text-sm overflow-x-auto max-h-[220px] leading-relaxed border border-slate-300 dark:border-slate-800">
             <code>{optimizedCode}</code>
           </pre>
         </div>

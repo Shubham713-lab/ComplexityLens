@@ -23,12 +23,10 @@ def _generate_mock_args(fn_name: str, fn_args: List[str], n: int, time_complexit
     args = []
     for arg in fn_args:
         arg_lower = arg.lower()
-        if arg_lower in ('arr', 'nums', 'list_a', 'data', 'a', 'b', 'vector'):
+        if arg_lower in ('arr', 'nums', 'list_a', 'data', 'a', 'b', 'vector', 'coins', 'items', 'elements', 'values'):
             # Generate reverse-sorted or sorted array of size N
             args.append(list(range(effective_n, 0, -1)))
-        elif arg_lower in ('target', 'val', 'k', 'key', 'x'):
-            args.append(effective_n // 2)
-        elif arg_lower in ('n', 'size', 'length', 'num'):
+        elif arg_lower in ('target', 'val', 'k', 'key', 'x', 'amount', 'n', 'size', 'length', 'num', 'count', 'total', 'amt', 'limit'):
             args.append(effective_n)
         else:
             args.append(list(range(effective_n)))
