@@ -6,7 +6,7 @@ from typing import Optional, Dict, Any, List
 from analyzer.python_analyzer import analyze_python_code
 from analyzer.cpp_java_analyzer import analyze_cpp_java_code
 from analyzer.execution_benchmark import run_empirical_benchmark
-from analyzer.ai_explainer import generate_ai_explanation
+from analyzer.ai_explainer import generate_ai_explanation, chat_with_ai
 from dotenv import load_dotenv; load_dotenv()
 
 app = FastAPI(title="Real-Time Algorithm Complexity Analyzer API", version="1.0.0")
@@ -22,6 +22,7 @@ app.add_middleware(
 class CodeAnalysisRequest(BaseModel):
     code: str
     language: str  # python, cpp, java
+    api_key: Optional[str] = None
 
 class BenchmarkRequest(BaseModel):
     time_complexity_o: str
@@ -36,6 +37,16 @@ class AIExplainRequest(BaseModel):
     time_complexity_o: str
     space_complexity: str
     formula: str
+    api_key: Optional[str] = None
+
+class ChatRequest(BaseModel):
+    code: str
+    language: str
+    time_complexity_o: Optional[str] = "O(N)"
+    space_complexity: Optional[str] = "O(1)"
+    formula: Optional[str] = ""
+    messages: List[Dict[str, str]]
+    api_key: Optional[str] = None
 
 @app.get("/")
 def read_root():
@@ -59,26 +70,66 @@ def analyze_code(req: CodeAnalysisRequest):
     if not analysis.get("valid", True):
         raise HTTPException(status_code=422, detail=analysis.get("error", "Failed to parse code"))
         
-    # Generate benchmark dataset
-    benchmark_res = run_empirical_benchmark(
-        time_complexity_o=analysis.get("time_complexity_o", "O(N)"),
-        max_n=10000,
-        code=code,
-        language=lang,
-        num_trials=3
-    )
-    analysis["benchmark_data"] = benchmark_res["benchmark_data"]
-    analysis["is_live_execution"] = benchmark_res["is_live_execution"]
-    analysis["curve_fit"] = benchmark_res["curve_fit"]
-    
-    # Generate default AI/Rule explanation
+    # Generate default AI/Rule explanation & refinement
     ai_data = generate_ai_explanation(
         code=code,
         language=lang,
         time_o=analysis["time_complexity_o"],
         space_o=analysis["space_complexity"],
-        formula=analysis["formula_str"]
+        formula=analysis["formula_str"],
+        api_key=req.api_key
     )
+
+    # If AI Model verified/refined complexity, update the root metrics and line costs
+    if ai_data.get("ai_source") != "Built-in Analysis Engine":
+        if "time_complexity_o" in ai_data:
+            analysis["time_complexity_o"] = ai_data["time_complexity_o"]
+            analysis["time_complexity_omega"] = ai_data.get("time_complexity_omega", ai_data["time_complexity_o"].replace("O(", "Ω("))
+            analysis["time_complexity_theta"] = ai_data.get("time_complexity_theta", ai_data["time_complexity_o"].replace("O(", "Θ("))
+        if "space_complexity" in ai_data:
+            analysis["space_complexity"] = ai_data["space_complexity"]
+        if "formula_str" in ai_data:
+            analysis["formula_str"] = ai_data["formula_str"]
+        if "dominant_term" in ai_data:
+            analysis["dominant_term"] = ai_data["dominant_term"]
+
+        # Merge AI-verified line_costs into static line_costs
+        if "line_costs" in ai_data and isinstance(ai_data["line_costs"], dict):
+            for l_str, info in ai_data["line_costs"].items():
+                try:
+                    l_num = int(l_str)
+                    if l_num in analysis.get("line_costs", {}):
+                        if isinstance(info, dict):
+                            if "cost" in info:
+                                analysis["line_costs"][l_num]["cost"] = info["cost"]
+                            if "frequency" in info:
+                                analysis["line_costs"][l_num]["frequency"] = info["frequency"]
+                        elif isinstance(info, str):
+                            analysis["line_costs"][l_num]["cost"] = info
+                except (ValueError, TypeError):
+                    pass
+
+            # Synchronize AST graph nodes with AI line costs
+            if "graph" in analysis and "nodes" in analysis["graph"]:
+                for node in analysis["graph"]["nodes"]:
+                    line_no = node.get("data", {}).get("line")
+                    if line_no and line_no in analysis["line_costs"]:
+                        ai_cost = analysis["line_costs"][line_no]["cost"]
+                        node["data"]["cost"] = ai_cost
+                        if "Loop" in node.get("data", {}).get("label", ""):
+                            node["data"]["label"] = f"Loop ({ai_cost})"
+
+    # Generate benchmark dataset using finalized time complexity
+    benchmark_res = run_empirical_benchmark(
+        time_complexity_o=analysis.get("time_complexity_o", "O(N)"),
+        max_n=10000,
+        code=code,
+        language=lang,
+        num_trials=1
+    )
+    analysis["benchmark_data"] = benchmark_res["benchmark_data"]
+    analysis["is_live_execution"] = benchmark_res["is_live_execution"]
+    analysis["curve_fit"] = benchmark_res["curve_fit"]
     analysis["ai_explanation"] = ai_data
     
     return analysis
@@ -104,6 +155,19 @@ def get_ai_explanation(req: AIExplainRequest):
         formula=req.formula
     )
     return ai_res
+
+@app.post("/api/chat")
+def chat_algorithm(req: ChatRequest):
+    reply = chat_with_ai(
+        code=req.code,
+        language=req.language,
+        time_o=req.time_complexity_o or "O(N)",
+        space_o=req.space_complexity or "O(1)",
+        formula=req.formula or "",
+        messages=req.messages,
+        api_key=req.api_key
+    )
+    return {"reply": reply}
 
 @app.get("/api/presets")
 def get_code_presets():

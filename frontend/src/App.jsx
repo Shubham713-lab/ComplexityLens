@@ -7,8 +7,10 @@ import GraphVisualizer from './components/GraphVisualizer';
 import GrowthChart from './components/GrowthChart';
 import OptimizationPanel from './components/OptimizationPanel';
 import AIExplanationPanel from './components/AIExplanationPanel';
+import AlgorithmChatPanel from './components/AlgorithmChatPanel';
 import ReportModal from './components/ReportModal';
-import { Cpu, Network, TrendingUp, ListTree, BookOpen, Sparkles, AlertCircle } from 'lucide-react';
+import HomePage from './components/HomePage';
+import { Cpu, Network, TrendingUp, ListTree, BookOpen, Sparkles, AlertCircle, MessageSquareCode } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8000';
 
@@ -21,6 +23,7 @@ const DEFAULT_PYTHON_CODE = `def two_sum(nums, target):
     return []`;
 
 export default function App() {
+  const [currentView, setCurrentView] = useState('home'); // 'home' | 'analyzer'
   const [language, setLanguage] = useState('python');
   const [code, setCode] = useState(DEFAULT_PYTHON_CODE);
   const [presets, setPresets] = useState({});
@@ -32,6 +35,10 @@ export default function App() {
   const [highlightLine, setHighlightLine] = useState(null);
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('complexity_lens_theme') || 'dark';
+  });
+
+  const [apiKey, setApiKey] = useState(() => {
+    return localStorage.getItem('complexity_lens_gemini_key') || '';
   });
 
   useEffect(() => {
@@ -78,7 +85,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, language })
+        body: JSON.stringify({ code, language, api_key: apiKey || undefined })
       });
       if (!res.ok) {
         const err = await res.json();
@@ -134,35 +141,49 @@ export default function App() {
   const currentPresets = presets[language] || [];
 
   return (
-    <div className={`h-screen w-screen flex flex-col font-sans overflow-hidden transition-colors duration-200 ${
+    <div className={`w-full font-sans transition-colors duration-200 ${
+      currentView === 'analyzer' ? 'h-screen flex flex-col overflow-hidden' : 'min-h-screen flex flex-col'
+    } ${
       theme === 'light' ? 'bg-[#f1f5f9] text-slate-900' : 'bg-[#0b0f19] text-slate-100'
     }`}>
-      {/* Top Header Controls */}
-      <Header
-        language={language}
-        setLanguage={setLanguage}
-        presetList={currentPresets}
-        onSelectPreset={(newCode) => setCode(newCode)}
-        onAnalyze={handleAnalyze}
-        isAnalyzing={isAnalyzing}
-        onExportReport={() => setIsReportOpen(true)}
-        theme={theme}
-        setTheme={setTheme}
-      />
+      {currentView === 'home' ? (
+        <HomePage
+          onLaunchAnalyzer={() => setCurrentView('analyzer')}
+          theme={theme}
+          setTheme={setTheme}
+        />
+      ) : (
+        <>
+          {/* Top Header Controls for Analyzer Workspace */}
+          <Header
+            currentView={currentView}
+            setCurrentView={setCurrentView}
+            language={language}
+            setLanguage={setLanguage}
+            presetList={currentPresets}
+            onSelectPreset={(newCode) => setCode(newCode)}
+            onAnalyze={handleAnalyze}
+            isAnalyzing={isAnalyzing}
+            onExportReport={() => setIsReportOpen(true)}
+            theme={theme}
+            setTheme={setTheme}
+            apiKey={apiKey}
+            setApiKey={setApiKey}
+          />
 
-      {/* Main App Workspace Layout - Fits 100% viewport */}
-      <main className="flex-1 min-h-0 p-3 md:p-4 max-w-[1800px] w-full mx-auto flex flex-col overflow-hidden">
-        {/* Error Alert if any */}
-        {errorMsg && (
-          <div className="shrink-0 mb-2 glass-panel p-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-3">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-            <div className="flex-1 truncate">{errorMsg}</div>
-            <button onClick={() => setErrorMsg(null)} className="text-rose-400 hover:text-rose-200">Dismiss</button>
-          </div>
-        )}
+          {/* Main App Workspace Layout - Fits 100% viewport */}
+          <main className="flex-1 min-h-0 p-3 md:p-4 max-w-[1800px] w-full mx-auto flex flex-col overflow-hidden">
+          {/* Error Alert if any */}
+          {errorMsg && (
+            <div className="shrink-0 mb-2 glass-panel p-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-3">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <div className="flex-1 truncate">{errorMsg}</div>
+              <button onClick={() => setErrorMsg(null)} className="text-rose-400 hover:text-rose-200">Dismiss</button>
+            </div>
+          )}
 
-        {/* Side-by-Side Main Split Grid */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch overflow-hidden">
+          {/* Side-by-Side Main Split Grid */}
+          <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch overflow-hidden">
           {/* LEFT SIDE: Monaco Code Editor */}
           <div className="lg:col-span-5 h-full flex flex-col overflow-hidden">
             <CodeEditor
@@ -170,6 +191,7 @@ export default function App() {
               setCode={setCode}
               language={language}
               lineCosts={analysis?.line_costs}
+              codeInputMetrics={analysis?.code_input_metrics}
               highlightLine={highlightLine}
               theme={theme}
             />
@@ -240,119 +262,101 @@ export default function App() {
               </button>
 
               <button
-                onClick={() => setActiveTab('ai')}
+                onClick={() => setActiveTab('chat')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-                  activeTab === 'ai'
-                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 shadow-sm'
+                  activeTab === 'chat'
+                    ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
-                <BookOpen className="w-3.5 h-3.5" />
-                <span>AI Breakdown</span>
+                <MessageSquareCode className="w-3.5 h-3.5" />
+                <span>Ask Chatbot</span>
               </button>
             </div>
 
             {/* Active Tab Panel Content - Fills remaining height */}
-            <div className="flex-1 min-h-0 h-full flex flex-col overflow-hidden">
-              {activeTab === 'complexity' && (
-                <div className="glass-panel h-full flex-1 rounded-xl border border-slate-200 dark:border-slate-800 p-5 space-y-5 shadow-xl overflow-y-auto min-h-0 bg-white/80 dark:bg-slate-950/60">
-                  <div className="flex items-center gap-2.5 border-b border-slate-200 dark:border-slate-800 pb-3">
-                    <Cpu className="w-5 h-5 text-rose-600 dark:text-rose-400" />
-                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
-                      Asymptotic Complexity Overview
-                    </h3>
+            <div className="flex-1 min-h-0 h-full flex flex-col overflow-hidden relative">
+              {isAnalyzing ? (
+                <div className="glass-panel h-full flex-1 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 flex flex-col items-center justify-center space-y-4 shadow-xl bg-white/90 dark:bg-slate-950/90 backdrop-blur-md z-10">
+                  <div className="relative flex items-center justify-center">
+                    <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 border-r-purple-500 rounded-full animate-spin"></div>
+                    <Cpu className="w-7 h-7 text-cyan-500 absolute animate-pulse" />
                   </div>
-
-                  {/* Top 4 Cards Grid */}
-                  <ComplexityCards analysis={analysis} />
-
-                  {/* Asymptotic Details & Bounds */}
-                  {analysis && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      {/* Left: Asymptotic Bounds Matrix */}
-                      <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-3">
-                        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                          Asymptotic Notation Bounds
-                        </h4>
-                        <div className="space-y-2 text-xs font-mono">
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                            <span className="text-slate-500 dark:text-slate-400">Worst Case (Big O):</span>
-                            <span className="font-bold text-rose-600 dark:text-rose-400">{analysis.time_complexity_o || 'O(1)'}</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                            <span className="text-slate-500 dark:text-slate-400">Best Case (Big Omega):</span>
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400">{analysis.time_complexity_omega || 'Ω(1)'}</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                            <span className="text-slate-500 dark:text-slate-400">Average Case (Big Theta):</span>
-                            <span className="font-bold text-sky-600 dark:text-sky-400">{analysis.time_complexity_theta || 'Θ(1)'}</span>
-                          </div>
-                        </div>
+                  <div className="text-center space-y-1">
+                    <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 tracking-wide">
+                      Analyzing Algorithm Complexity...
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                      Evaluating AST • Calculating Operation Count T(N) • Big-O Bounds
+                    </p>
+                  </div>
+                  <div className="w-48 bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 h-full animate-pulse w-3/4"></div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {activeTab === 'complexity' && (
+                    <div className="glass-panel h-full flex-1 rounded-xl border border-slate-200 dark:border-slate-800 p-5 space-y-5 shadow-xl overflow-y-auto min-h-0 bg-white/80 dark:bg-slate-950/60">
+                      <div className="flex items-center gap-2.5 border-b border-slate-200 dark:border-slate-800 pb-3">
+                        <Cpu className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                          Asymptotic Complexity Overview
+                        </h3>
                       </div>
 
-                      {/* Right: Operational Formula & Memory Footprint */}
-                      <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-3">
-                        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                          Exact Operational Scaling
-                        </h4>
-                        <div className="space-y-2 text-xs font-mono">
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                            <span className="text-slate-500 dark:text-slate-400">Step Summation Formula:</span>
-                            <span className="font-bold text-cyan-600 dark:text-cyan-300">{analysis.formula_str || 'T = 1'}</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                            <span className="text-slate-500 dark:text-slate-400">Dominant Factor:</span>
-                            <span className="font-bold text-amber-600 dark:text-amber-400">O({analysis.dominant_term || '1'})</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                            <span className="text-slate-500 dark:text-slate-400">Auxiliary Memory:</span>
-                            <span className="font-bold text-purple-600 dark:text-purple-400">{analysis.space_complexity || 'O(1)'}</span>
-                          </div>
-                        </div>
-                      </div>
+                      {/* Top 4 Cards Grid */}
+                      <ComplexityCards analysis={analysis} />
                     </div>
                   )}
-                </div>
-              )}
 
-              {activeTab === 'graph' && (
-                <GraphVisualizer
-                  graphData={analysis?.graph}
-                  onNodeClick={(line) => setHighlightLine(line)}
-                  theme={theme}
-                />
-              )}
+                  {activeTab === 'graph' && (
+                    <GraphVisualizer
+                      graphData={analysis?.graph}
+                      onNodeClick={(line) => setHighlightLine(line)}
+                      theme={theme}
+                    />
+                  )}
 
-              {activeTab === 'growth' && (
-                <GrowthChart
-                  benchmarkData={analysis?.benchmark_data}
-                  timeComplexityO={analysis?.time_complexity_o}
-                  isLiveExecution={analysis?.is_live_execution}
-                  curveFit={analysis?.curve_fit}
-                  onRunCustomBenchmark={handleRunCustomBenchmark}
-                  isBenchmarking={isBenchmarking}
-                  theme={theme}
-                />
-              )}
+                  {activeTab === 'growth' && (
+                    <GrowthChart
+                      benchmarkData={analysis?.benchmark_data}
+                      timeComplexityO={analysis?.time_complexity_o}
+                      isLiveExecution={analysis?.is_live_execution}
+                      curveFit={analysis?.curve_fit}
+                      onRunCustomBenchmark={handleRunCustomBenchmark}
+                      isBenchmarking={isBenchmarking}
+                      theme={theme}
+                    />
+                  )}
 
-              {activeTab === 'linecosts' && (
-                <LineCostTable lineCosts={analysis?.line_costs} />
-              )}
+                  {activeTab === 'linecosts' && (
+                    <LineCostTable lineCosts={analysis?.line_costs} />
+                  )}
 
-              {activeTab === 'optimization' && (
-                <OptimizationPanel
-                  aiExplanation={analysis?.ai_explanation}
-                  onApplyCode={(newCode) => setCode(newCode)}
-                />
-              )}
+                  {activeTab === 'optimization' && (
+                    <OptimizationPanel
+                      aiExplanation={analysis?.ai_explanation}
+                      onApplyCode={(newCode) => setCode(newCode)}
+                    />
+                  )}
 
-              {activeTab === 'ai' && (
-                <AIExplanationPanel aiExplanation={analysis?.ai_explanation} />
+                  {activeTab === 'chat' && (
+                    <AlgorithmChatPanel
+                      code={code}
+                      language={language}
+                      analysis={analysis}
+                      apiKey={apiKey}
+                    />
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
-      </main>
+        </main>
+        </>
+      )}
 
       {/* Report Modal */}
       <ReportModal

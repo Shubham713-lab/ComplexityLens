@@ -43,7 +43,23 @@ def analyze_cpp_java_code(code: str, language: str = "cpp") -> Dict[str, Any]:
         
     for i, line_text in enumerate(lines, start=1):
         stripped = line_text.strip()
-        if not stripped or stripped.startswith("//") or stripped.startswith("/*") or stripped.startswith("*"):
+        if not stripped:
+            line_costs[i] = {
+                "line": i,
+                "text": line_text,
+                "cost": "O(0)",
+                "frequency": "Blank line",
+                "depth": 0
+            }
+            continue
+        if stripped.startswith("//") or stripped.startswith("/*") or stripped.startswith("*"):
+            line_costs[i] = {
+                "line": i,
+                "text": line_text,
+                "cost": "O(0)",
+                "frequency": "Comment",
+                "depth": 0
+            }
             continue
             
         # Detect loops
@@ -136,6 +152,9 @@ def analyze_cpp_java_code(code: str, language: str = "cpp") -> Dict[str, Any]:
     # Build React Flow graph for C++/Java
     nodes, edges = _build_cpp_java_graph(code, language, has_recursion)
     
+    raw_lines = code.splitlines()
+    loc_active = len([l for l in raw_lines if l.strip() and not l.strip().startswith('//') and not l.strip().startswith('/*')])
+    
     return {
         "valid": True,
         "language": language,
@@ -147,6 +166,14 @@ def analyze_cpp_java_code(code: str, language: str = "cpp") -> Dict[str, Any]:
         "latex_formula": solver_res["latex_formula"],
         "dominant_term": solver_res["dominant_term"],
         "line_costs": line_costs,
+        "code_input_metrics": {
+            "total_lines": len(raw_lines),
+            "loc_active": loc_active,
+            "char_count": len(code),
+            "ast_node_count": len(nodes),
+            "loops_count": len(loop_bounds),
+            "max_nested_depth": max_depth,
+        },
         "graph": {
             "nodes": nodes,
             "edges": edges

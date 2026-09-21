@@ -123,3 +123,33 @@ def test_cpp_nested_loops():
     res = analyze_cpp_java_code(code, "cpp")
     assert res["valid"] is True
     assert res["time_complexity_o"] == "O(N²)"
+
+def test_python_in_operator_inside_loop():
+    code = """def find_common(list1, list2):
+    res = []
+    for item in list1:
+        if item in list2:
+            res.append(item)
+    return res"""
+    res = analyze_python_code(code)
+    assert res["valid"] is True
+    assert res["time_complexity_o"] in ("O(N²)", "O(M · N)", "O(N · M)")
+    assert "contains O(N) list search" in res["line_costs"][4]["frequency"]
+
+def test_python_matrix_space():
+    code = """def create_matrix(n):
+    grid = [[0]*n for _ in range(n)]
+    return grid"""
+    res = analyze_python_code(code)
+    assert res["valid"] is True
+    assert res["space_complexity"] == "O(N²)"
+
+def test_python_pop_inside_loop():
+    code = """def clear_queue(arr):
+    n = len(arr)
+    for _ in range(n):
+        arr.pop(0)"""
+    res = analyze_python_code(code)
+    assert res["valid"] is True
+    assert res["time_complexity_o"] in ("O(N²)", "O(M · N)", "O(N · M)")
+    assert "contains O(N) .pop() operation" in res["line_costs"][4]["frequency"]

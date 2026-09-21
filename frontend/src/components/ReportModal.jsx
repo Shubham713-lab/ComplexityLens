@@ -36,7 +36,7 @@ export default function ReportModal({ isOpen, onClose, code, language, analysis 
           <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400">
             <FileText className="w-5 h-5" />
             <h2 className="font-bold text-base text-slate-800 dark:text-slate-100 uppercase tracking-wider">
-              CS Lab Audit Report Preview
+              Algorithm Analysis Report
             </h2>
           </div>
 
@@ -73,7 +73,8 @@ export default function ReportModal({ isOpen, onClose, code, language, analysis 
             <div className="text-right text-xs text-slate-500 dark:text-slate-400 print:text-gray-600 font-mono">
               <div>Date: <span className="font-semibold text-slate-800 dark:text-slate-200 print:text-black">{currentDate}</span></div>
               <div>Language: <span className="font-semibold uppercase text-cyan-600 dark:text-cyan-400 print:text-black">{language}</span></div>
-              <div>Evaluated Lines: <span className="font-semibold text-slate-800 dark:text-slate-200 print:text-black">{lineCosts.length}</span></div>
+              <div>Total Lines (LOC): <span className="font-semibold text-slate-800 dark:text-slate-200 print:text-black">{analysis.code_input_metrics?.total_lines || lineCosts.length}</span></div>
+              <div>Char Count: <span className="font-semibold text-slate-800 dark:text-slate-200 print:text-black">{analysis.code_input_metrics?.char_count || code.length}</span></div>
             </div>
           </div>
 

@@ -7,7 +7,8 @@ import {
   YAxis,
   Tooltip,
   Legend,
-  CartesianGrid
+  CartesianGrid,
+  Brush
 } from 'recharts';
 import { TrendingUp, Play, Maximize2, Minimize2, X, Cpu } from 'lucide-react';
 
@@ -129,21 +130,19 @@ export default function GrowthChart({
         <div className="flex bg-white dark:bg-slate-950 p-0.5 rounded-lg border border-slate-300 dark:border-slate-800 text-xs font-medium">
           <button
             onClick={() => setMetricMode('runtime')}
-            className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-              metricMode === 'runtime'
+            className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${metricMode === 'runtime'
                 ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             Runtime (ms)
           </button>
           <button
             onClick={() => setMetricMode('steps')}
-            className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-              metricMode === 'steps'
+            className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${metricMode === 'steps'
                 ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30 font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             Steps
           </button>
@@ -207,55 +206,51 @@ export default function GrowthChart({
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => toggleCurve('measured')}
-            className={`px-2.5 py-0.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-              activeCurves.measured
+            className={`px-2.5 py-0.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${activeCurves.measured
                 ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border-cyan-500/40'
                 : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-800'
-            }`}
+              }`}
           >
             Measured ({timeComplexityO || 'O(N)'})
           </button>
           <button
             onClick={() => toggleCurve('O_N')}
-            className={`px-2.5 py-0.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-              activeCurves.O_N
+            className={`px-2.5 py-0.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${activeCurves.O_N
                 ? 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/40'
                 : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-800'
-            }`}
+              }`}
           >
             O(N) Shape
           </button>
           <button
             onClick={() => toggleCurve('O_NlogN')}
-            className={`px-2.5 py-0.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-              activeCurves.O_NlogN
+            className={`px-2.5 py-0.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${activeCurves.O_NlogN
                 ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40'
                 : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-800'
-            }`}
+              }`}
           >
             O(N log N) Shape
           </button>
           <button
             onClick={() => toggleCurve('O_N2')}
-            className={`px-2.5 py-0.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-              activeCurves.O_N2
+            className={`px-2.5 py-0.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${activeCurves.O_N2
                 ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40'
                 : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-800'
-            }`}
+              }`}
           >
             O(N²) Shape
           </button>
           <button
             onClick={() => toggleCurve('O_1')}
-            className={`px-2.5 py-0.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-              activeCurves.O_1
+            className={`px-2.5 py-0.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${activeCurves.O_1
                 ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40'
                 : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-800'
-            }`}
+              }`}
           >
             O(1) Shape
           </button>
         </div>
+
       </div>
 
       {/* Main Chart Area */}
@@ -277,8 +272,8 @@ export default function GrowthChart({
                 val >= 1000000
                   ? `${(val / 1000000).toFixed(1)}M`
                   : val >= 1000
-                  ? `${(val / 1000).toFixed(1)}k`
-                  : val
+                    ? `${(val / 1000).toFixed(1)}k`
+                    : val
               }
             />
             <Tooltip
@@ -357,6 +352,14 @@ export default function GrowthChart({
                 dot={false}
               />
             )}
+            <Brush
+              dataKey="n"
+              height={26}
+              stroke={isLight ? '#0284c7' : '#38bdf8'}
+              fill={isLight ? '#f1f5f9' : '#0f172a'}
+              tickFormatter={(val) => `N=${val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}`}
+              travellerWidth={10}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>

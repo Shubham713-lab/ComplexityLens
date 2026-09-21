@@ -26,6 +26,9 @@ def solve_loop_complexity(loop_bounds: List[Dict[str, Any]], inner_cost: int = 1
     has_log = False
     log_count = 0
     
+    # Collect all loop variables
+    loop_vars = {str(b.get('var', 'i')).strip() for b in loop_bounds}
+    
     # Analyze bounds
     symbolic_bounds = []
     for bound in loop_bounds:
@@ -37,16 +40,45 @@ def solve_loop_complexity(loop_bounds: List[Dict[str, Any]], inner_cost: int = 1
             has_log = True
             log_count += 1
             
-        clean_end = end_str.replace("len(", "").replace(")", "").strip()
-        if clean_end not in sym_map:
-            if clean_end in ('1', '0', 'True', 'False', 'None'):
-                sym_map[clean_end] = sp.Integer(1)
+        import re
+        clean_end = re.sub(r'len\((.*?)\)', r'\1', end_str).strip()
+        
+        # Extract identifier tokens excluding loop index variables & builtins
+        tokens = re.findall(r'\b[a-zA-Z_]\w*\b', clean_end)
+        candidates = [t for t in tokens if t not in loop_vars and t not in ('len', 'range', 'min', 'max', 'abs', 'int', 'float', 'True', 'False', 'None', '0', '1')]
+        
+        if not candidates:
+            try:
+                val = int(clean_end)
+                dim_sym = sp.Integer(val)
+            except ValueError:
+                dim_sym = sp.Integer(1)
+        else:
+            primary_token = candidates[0]
+            if primary_token in sym_map:
+                dim_sym = sym_map[primary_token]
             else:
-                sym_name = canonical_symbols[sym_idx % len(canonical_symbols)]
-                sym_idx += 1
-                sym_map[clean_end] = sp.Symbol(sym_name, positive=True, integer=True)
-                
-        dim_sym = sym_map[clean_end]
+                # If sym_map is empty, this is the first primary variable -> map to N
+                first_sym = list(sym_map.keys())[0] if sym_map else None
+                if first_sym is None:
+                    new_sym = sp.Symbol('N', positive=True, integer=True)
+                    sym_map[primary_token] = new_sym
+                    dim_sym = new_sym
+                    sym_idx = 1
+                else:
+                    # If this token is a distinct parameter name (e.g. 'coins' vs 'amount'), map to next symbol (M)
+                    # Otherwise if it shares the root token or refers to length of same dataset, reuse first symbol N
+                    if primary_token.lower() == first_sym.lower() or primary_token in ('len', 'length', 'size'):
+                        n_sym = sym_map[first_sym]
+                        sym_map[primary_token] = n_sym
+                        dim_sym = n_sym
+                    else:
+                        sym_name = canonical_symbols[sym_idx % len(canonical_symbols)]
+                        sym_idx += 1
+                        new_sym = sp.Symbol(sym_name, positive=True, integer=True)
+                        sym_map[primary_token] = new_sym
+                        dim_sym = new_sym
+
         symbolic_bounds.append((var_name, dim_sym, step_type))
         
     current_expr = sp.Integer(inner_cost)

@@ -125,6 +125,10 @@ class PythonCodeAnalyzer(ast.NodeVisitor):
                     solver_res["latex_formula"] = f"T = {inner_term.replace(' log ', ' \\\\log_2 ')}"
                     solver_res["dominant_term"] = inner_term
 
+        raw_lines = self.code.splitlines()
+        loc_active = len([l for l in raw_lines if l.strip() and not l.strip().startswith('#')])
+        ast_nodes_cnt = len(list(ast.walk(self.tree))) if self.tree else len(raw_lines)
+
         return {
             "valid": True,
             "language": "python",
@@ -136,6 +140,14 @@ class PythonCodeAnalyzer(ast.NodeVisitor):
             "latex_formula": solver_res["latex_formula"],
             "dominant_term": solver_res["dominant_term"],
             "line_costs": self.line_costs,
+            "code_input_metrics": {
+                "total_lines": len(raw_lines),
+                "loc_active": loc_active,
+                "char_count": len(self.code),
+                "ast_node_count": ast_nodes_cnt,
+                "loops_count": len(self.loops_info),
+                "max_nested_depth": self.max_depth,
+            },
             "graph": {
                 "nodes": self.nodes,
                 "edges": self.edges
@@ -231,12 +243,51 @@ class PythonCodeAnalyzer(ast.NodeVisitor):
         """Inspect list comprehensions, matrix creations, or dynamic allocations"""
         for node in ast.walk(self.tree):
             if isinstance(node, ast.ListComp):
-                self.aux_space = "O(N)"
+                # Check for 2D matrix list comprehension [[0]*n for _ in range(n)]
+                if isinstance(node.elt, ast.ListComp) or (isinstance(node.elt, ast.BinOp) and isinstance(node.elt.op, ast.Mult)):
+                    self.aux_space = "O(N²)"
+                elif self.aux_space == "O(1)":
+                    self.aux_space = "O(N)"
             elif isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Name) and node.func.id in ('list', 'dict', 'set', 'append', 'extend'):
-                    self.aux_space = "O(N)"
+                    if self.aux_space == "O(1)":
+                        self.aux_space = "O(N)"
             elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mult):
-                self.aux_space = "O(N)"
+                if self.aux_space == "O(1)":
+                    self.aux_space = "O(N)"
+
+    def _get_line_builtin_extra_depth(self, lineno: int) -> Tuple[int, str]:
+        """
+        Detects O(N) or O(N log N) built-in operations on a specific line statement.
+        """
+        for node in ast.walk(self.tree):
+            if getattr(node, 'lineno', None) == lineno:
+                # Check compare 'in' / 'not in'
+                if isinstance(node, ast.Compare):
+                    for op in node.ops:
+                        if isinstance(op, (ast.In, ast.NotIn)):
+                            return 1, "contains O(N) list search"
+                # Check call functions
+                if isinstance(node, ast.Call):
+                    func_name = None
+                    if isinstance(node.func, ast.Name):
+                        func_name = node.func.id
+                    elif isinstance(node.func, ast.Attribute):
+                        func_name = node.func.attr
+                    
+                    if func_name in ('pop', 'insert', 'remove', 'index', 'count', 'find', 'rfind', 'replace'):
+                        return 1, f"contains O(N) .{func_name}() operation"
+                    elif func_name in ('min', 'max'):
+                        if len(node.args) == 1:
+                            return 1, f"contains O(N) {func_name}() call"
+                    elif func_name in ('sum', 'reversed', 'factorial'):
+                        return 1, f"contains O(N) {func_name}() call"
+                    elif func_name in ('sorted', 'sort'):
+                        return 1, f"contains O(N log N) {func_name}() sorting call"
+                # Check list slicing
+                if isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Slice):
+                    return 1, "contains O(N) list slice operation"
+        return 0, ""
 
     def visit_For(self, node: ast.For):
         var_name = node.target.id if isinstance(node.target, ast.Name) else "i"
@@ -270,6 +321,25 @@ class PythonCodeAnalyzer(ast.NodeVisitor):
         self.loops_info.append(loop_info)
         self.max_depth = max(self.max_depth, len(self.loop_stack))
         
+        # Check if loop body contains an O(N) built-in operation, adding a synthetic depth info
+        for child in ast.walk(node):
+            if child is not node:
+                child_line = getattr(child, 'lineno', 0)
+                if child_line > 0:
+                    extra_d, _ = self._get_line_builtin_extra_depth(child_line)
+                    if extra_d > 0:
+                        synthetic_bound = {
+                            "var": f"inner_{child_line}",
+                            "start": "1",
+                            "end": "N",
+                            "step_type": "linear",
+                            "line": child_line
+                        }
+                        if synthetic_bound not in self.loops_info:
+                            self.loops_info.append(synthetic_bound)
+                            self.max_depth = max(self.max_depth, len(self.loop_stack) + 1)
+                        break
+
         self.generic_visit(node)
         self.loop_stack.pop()
 
@@ -301,26 +371,44 @@ class PythonCodeAnalyzer(ast.NodeVisitor):
     def _generate_line_costs(self):
         for i, line_text in enumerate(self.lines, start=1):
             line_str = line_text.strip()
-            if not line_str or line_str.startswith("#"):
+            if not line_str:
+                self.line_costs[i] = {
+                    "line": i,
+                    "text": line_text,
+                    "cost": "O(0)",
+                    "frequency": "Blank line",
+                    "depth": 0
+                }
+                continue
+            if line_str.startswith("#"):
+                self.line_costs[i] = {
+                    "line": i,
+                    "text": line_text,
+                    "cost": "O(0)",
+                    "frequency": "Comment",
+                    "depth": 0
+                }
                 continue
                 
             depth = self._get_line_depth(i)
+            extra_d, extra_desc = self._get_line_builtin_extra_depth(i)
+            effective_depth = depth + extra_d if depth > 0 else (extra_d if extra_d > 0 else depth)
                 
-            if depth == 0:
+            if effective_depth == 0:
                 cost_label = "O(1)"
                 freq = "Executed 1 time"
-            elif depth == 1:
+            elif effective_depth == 1:
                 cost_label = "O(N)"
-                freq = "Executed N times"
-            elif depth == 2:
+                freq = f"Executed N times ({extra_desc})" if extra_desc else "Executed N times"
+            elif effective_depth == 2:
                 cost_label = "O(N²)"
-                freq = "Executed N × N times"
-            elif depth == 3:
+                freq = f"Executed N × N times ({extra_desc})" if extra_desc else "Executed N × N times"
+            elif effective_depth == 3:
                 cost_label = "O(N³)"
-                freq = "Executed N³ times"
+                freq = f"Executed N³ times ({extra_desc})" if extra_desc else "Executed N³ times"
             else:
-                cost_label = f"O(N^{depth})"
-                freq = f"Executed N^{depth} times"
+                cost_label = f"O(N^{effective_depth})"
+                freq = f"Executed N^{effective_depth} times"
                 
             if self.has_recursion:
                 if "(" in line_str and ("return" in line_str or "=" in line_str or "+" in line_str):
@@ -339,7 +427,7 @@ class PythonCodeAnalyzer(ast.NodeVisitor):
                 "text": line_text,
                 "cost": cost_label,
                 "frequency": freq,
-                "depth": depth
+                "depth": effective_depth
             }
 
     def _get_line_depth(self, lineno: int) -> int:

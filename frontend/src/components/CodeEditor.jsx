@@ -1,10 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
-import { Code2, Flame, Layers } from 'lucide-react';
+import { Code2 } from 'lucide-react';
 
-export default function CodeEditor({ code, setCode, language, lineCosts, highlightLine, theme }) {
+export default function CodeEditor({ code, setCode, language, codeInputMetrics, highlightLine, theme }) {
   const editorRef = useRef(null);
-  const decorationsRef = useRef([]);
 
   const handleEditorChange = (value) => {
     setCode(value || '');
@@ -12,53 +11,11 @@ export default function CodeEditor({ code, setCode, language, lineCosts, highlig
 
   const handleEditorMount = (editor) => {
     editorRef.current = editor;
-    updateDecorations();
     if (highlightLine) {
       editor.revealLineInCenter(highlightLine);
       editor.setPosition({ lineNumber: highlightLine, column: 1 });
     }
   };
-
-  const updateDecorations = () => {
-    if (!editorRef.current || !lineCosts) return;
-
-    const newDecorations = [];
-    Object.values(lineCosts).forEach((item) => {
-      const lineNum = item.line;
-      const cost = item.cost || 'O(1)';
-
-      let className = 'line-heatmap-low';
-      if (cost === 'O(N²)' || cost === 'O(N³)' || cost.includes('2^N')) {
-        className = 'line-heatmap-high';
-      } else if (cost === 'O(N)') {
-        className = 'line-heatmap-mid';
-      } else if (cost.includes('log')) {
-        className = 'line-heatmap-log';
-      }
-
-      newDecorations.push({
-        range: {
-          startLineNumber: lineNum,
-          startColumn: 1,
-          endLineNumber: lineNum,
-          endColumn: 1,
-        },
-        options: {
-          isWholeLine: true,
-          className: className,
-        },
-      });
-    });
-
-    decorationsRef.current = editorRef.current.deltaDecorations(
-      decorationsRef.current,
-      newDecorations
-    );
-  };
-
-  useEffect(() => {
-    updateDecorations();
-  }, [lineCosts]);
 
   useEffect(() => {
     if (editorRef.current && highlightLine) {
@@ -74,37 +31,25 @@ export default function CodeEditor({ code, setCode, language, lineCosts, highlig
     return 'python';
   };
 
+  const lineCount = code.split('\n').length;
+  const charCount = code.length;
+  const activeLoc = codeInputMetrics?.loc_active ?? code.split('\n').filter(l => l.trim() && !l.trim().startsWith('#') && !l.trim().startsWith('//')).length;
+  const astNodes = codeInputMetrics?.ast_node_count ?? 'N/A';
+  const loopsCount = codeInputMetrics?.loops_count ?? 'N/A';
+
   return (
     <div className="h-full flex-1 flex flex-col glass-panel rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xl min-h-0 bg-white/80 dark:bg-slate-950/60">
-      {/* Editor Header Bar with Heatmap Legend */}
-      <div className="flex flex-wrap items-center justify-between px-3.5 py-2 bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 shrink-0 gap-2">
+      {/* Editor Header Bar */}
+      <div className="flex items-center justify-between px-3.5 py-2 bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 shrink-0">
         <div className="flex items-center gap-2">
-          <Code2 className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+          <Code2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
           <span className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
             {language === 'cpp' ? 'C++ Editor' : `${language} Editor`}
           </span>
         </div>
-
-        {/* Heatmap Legend Pills */}
-        <div className="flex items-center gap-1.5 text-[10px]">
-          <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
-            <Flame className="w-3 h-3 text-rose-500 dark:text-rose-400" /> Heatmap:
-          </span>
-          <div className="flex items-center gap-1 font-semibold">
-            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30">
-              ● O(N²)
-            </span>
-            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
-              ● O(N)
-            </span>
-            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
-              ● O(1)
-            </span>
-          </div>
-        </div>
       </div>
 
-      {/* Monaco Container - Fills remaining height */}
+      {/* Monaco Container */}
       <div className="flex-1 relative min-h-0 w-full">
         <Editor
           height="100%"
@@ -121,12 +66,25 @@ export default function CodeEditor({ code, setCode, language, lineCosts, highlig
             automaticLayout: true,
             tabSize: 4,
             padding: { top: 10, bottom: 10 },
-            renderLineHighlight: 'all',
+            renderLineHighlight: 'line',
             lineNumbersMinChars: 3,
             cursorBlinking: 'smooth',
             cursorSmoothCaretAnimation: 'on'
           }}
         />
+      </div>
+
+      {/* Code Input Count & Metrics Status Bar */}
+      <div className="flex flex-wrap items-center justify-between px-3 py-1.5 bg-slate-100/90 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 shrink-0 text-[11px] font-mono text-slate-600 dark:text-slate-400 gap-2">
+        <div className="flex items-center gap-3">
+          <span>Total Lines: <strong className="text-cyan-600 dark:text-cyan-400">{lineCount}</strong></span>
+          <span>Chars: <strong className="text-slate-800 dark:text-slate-200">{charCount}</strong></span>
+          <span>Active LOC: <strong className="text-emerald-600 dark:text-emerald-400">{activeLoc}</strong></span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span>AST Nodes: <strong className="text-purple-600 dark:text-purple-400">{astNodes}</strong></span>
+          <span>Loops: <strong className="text-amber-600 dark:text-amber-400">{loopsCount}</strong></span>
+        </div>
       </div>
     </div>
   );
