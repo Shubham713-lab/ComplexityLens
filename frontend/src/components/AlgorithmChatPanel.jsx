@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bot, User, Send, Sparkles, Trash2, Copy, Check, MessageSquareCode } from 'lucide-react';
 import MathView from './MathView';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'http://localhost:8000' : '');
 
 /**
  * Renders syntax-highlighted code blocks in chat messages with a copy button.
