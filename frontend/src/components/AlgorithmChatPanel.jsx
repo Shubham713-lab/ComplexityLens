@@ -239,8 +239,115 @@ export default function AlgorithmChatPanel({ code, language, analysis, apiKey })
       const query = text.toLowerCase();
       const codeLines = (code || '').split('\n');
 
-      const lineMatch = query.match(/\bline[s]?\s*(\d+)/);
-      if (lineMatch) {
+      const lineMatch = query.match(/\bline[s]?\s*(\d+)/i);
+
+      const conceptKB = {
+        recursion: {
+          title: "What is Recursion?",
+          def: "Recursion is a programming paradigm where a function calls itself to solve smaller instances of the same problem until reaching a **Base Case**.",
+          pts: ["Base Case stops infinite recursion.", "Consumes call stack frames.", "Used in Divide & Conquer algorithms."]
+        },
+        "dynamic programming": {
+          title: "What is Dynamic Programming (DP)?",
+          def: "Dynamic Programming is an algorithmic optimization technique that breaks problems into overlapping subproblems and caches intermediate results.",
+          pts: ["Memoization: Top-down caching.", "Tabulation: Bottom-up DP table.", "Reduces exponential $O(2^N)$ down to $O(N)$ or $O(N^2)$."]
+        },
+        dp: {
+          title: "What is Dynamic Programming (DP)?",
+          def: "DP avoids redundant calculations by storing intermediate subproblem answers in tables or hash maps.",
+          pts: ["Eliminates repeated recursive computations.", "Saves exponential time."]
+        },
+        memoization: {
+          title: "What is Memoization?",
+          def: "Memoization is a top-down DP caching technique that stores return values of expensive function calls.",
+          pts: ["Checks cache before running recursive calculations.", "Trades $O(N)$ space for drastic speedup."]
+        },
+        "binary search": {
+          title: "What is Binary Search?",
+          def: "Binary Search is a logarithmic $O(\\log N)$ search algorithm that locates targets in a **sorted array** by halving the search space per step.",
+          pts: ["Requires a sorted input array.", "Eliminates 50% of remaining elements per check.", "At most $\\log_2(N)$ iterations."]
+        },
+        "divide and conquer": {
+          title: "What is Divide & Conquer?",
+          def: "Divide & Conquer splits a problem into smaller independent subproblems, solves them recursively, and combines subproblem answers.",
+          pts: ["Used in Merge Sort ($O(N \\log N)$) and Quick Sort.", "Recursive tree structure."]
+        },
+        "sliding window": {
+          title: "What is the Sliding Window Technique?",
+          def: "Sliding Window maintains continuous subarray/substring bounds using index pointers to eliminate nested loops.",
+          pts: ["Reduces $O(N^2)$ loops to linear $O(N)$ time.", "Maintains running sums/counts."]
+        },
+        "two pointers": {
+          title: "What is the Two Pointers Technique?",
+          def: "Two Pointers uses two index variables iterating simultaneously across arrays to solve search/pair problems in $O(N)$ time.",
+          pts: ["Ideal for sorted array target matching.", "Executes in linear $O(N)$ time with $O(1)$ space."]
+        },
+        "base case": {
+          title: "What is a Base Case?",
+          def: "A Base Case is the anchor condition in a recursive function that returns a direct value without further recursive calls.",
+          pts: ["Prevents infinite recursion and stack overflow.", "Constant $O(1)$ execution."]
+        },
+        lambda: {
+          title: "What is a Lambda Function?",
+          def: "A `lambda` function is a small, inline anonymous function defined without a formal function header.",
+          pts: ["Syntax in Python: `lambda args: expression`.", "Used in inline callbacks, `sorted()`, `map()`."]
+        },
+        yield: {
+          title: "What is the `yield` Keyword?",
+          def: "`yield` turns a standard function into a Generator, producing values lazily on-demand.",
+          pts: ["Saves memory by producing items one-at-a-time ($O(1)$ space).", "Pauses function state between iterations."]
+        },
+        self: {
+          title: "What is `self` in Python?",
+          def: "`self` represents the instance of the object within class methods, granting access to attributes.",
+          pts: ["Passed as first parameter to instance methods.", "Binds variables to object instance."]
+        },
+        vector: {
+          title: "What is a `std::vector` in C++?",
+          def: "`std::vector` is a dynamic array in C++ that resizes automatically.",
+          pts: ["Constant $O(1)$ lookup via `vec[i]`.", "Amortized $O(1)$ tail insertion via `push_back()`."]
+        },
+        hashmap: {
+          title: "What is a HashMap / Dictionary?",
+          def: "A HashMap (`dict` in Python, `unordered_map` in C++) maps keys to values using hash tables for rapid $O(1)$ indexing.",
+          pts: ["Constant $O(1)$ average time key lookups.", "Consumes $O(N)$ space."]
+        }
+      };
+
+      const matchedConceptKey = Object.keys(conceptKB).find(k => query.includes(k));
+
+      if (matchedConceptKey) {
+        const c = conceptKB[matchedConceptKey];
+        reply = `### ${c.title}\n\n${c.def}\n\n#### Key Mechanics & Properties:\n` +
+          c.pts.map(p => `- ${p}`).join('\n') +
+          `\n\n#### Context in Your ${language.toUpperCase()} Code:\n- **Time Complexity:** **${timeO}**\n- **Space Complexity:** **${spaceO}**\n- **Formula:** \`${formulaStr}\``;
+      } else if (isSymbolQuery && symbolMatch) {
+        const fnName = symbolMatch.toLowerCase();
+        const builtins = {
+          append: "In Python, `list.append(item)` adds a single element to the end of a dynamic list in **O(1) amortized constant time**. It appends elements into memory without needing array copies.",
+          pop: "In Python, `list.pop()` removes and returns the last element in **O(1)** time. `list.pop(0)` removes from the front in **O(N)** linear time.",
+          extend: "In Python, `list.extend(iterable)` appends all items from another collection to the list in **O(K)** time.",
+          insert: "In Python, `list.insert(index, item)` places an element at a specific index in **O(N)** linear time.",
+          range: "In Python, `range(start, stop)` generates an arithmetic sequence on-demand in **O(1)** memory.",
+          len: "Returns element count in constant **O(1)** time.",
+          sort: "Sorts elements in-place with worst-case **O(N log N)** time complexity.",
+          sorted: "Returns a new sorted array in **O(N log N)** time.",
+          push: "In JavaScript/C++, `array.push(val)` appends an element to the container tail in **O(1)** amortized time.",
+          push_back: "In C++, `std::vector::push_back(val)` appends an element to the container tail in **O(1)** amortized time."
+        };
+        const occurrences = codeLines.map((l, i) => ({ line: i + 1, text: l })).filter(item => item.text.includes(symbolMatch));
+        
+        reply = `### Code Symbol & Method Analysis: \`${symbolMatch}\`\n\n` +
+          `#### 1. Definition & Technical Purpose\n` +
+          `${builtins[fnName] || `\`${symbolMatch}\` is a variable or function in your code used to process or store state during execution.`}\n\n` +
+          `#### 2. Occurrences & Role in Your Code\n` +
+          `Found \`${symbolMatch}\` on **${occurrences.length} line(s)**:\n` +
+          (occurrences.length > 0 ? occurrences.map(o => `- **Line ${o.line}:** \`${o.text.trim()}\``).join('\n') : `\`${symbolMatch}\` does not explicitly appear in your active code lines, but is a core programming language symbol.`) + `\n\n` +
+          `#### 3. Asymptotic & Performance Impact\n` +
+          (fnName === 'append' || fnName === 'push' || fnName === 'push_back'
+            ? `- **Time Complexity:** Executed in **$O(1)$ amortized constant time** per call.\n- **Space Complexity:** Allocates **$O(N)$ auxiliary space** across $N$ elements.`
+            : `- **Time Complexity:** Constant **$O(1)$** operation per step pass.\n- **Space Complexity:** Operates within allocated scope memory.`);
+      } else if (lineMatch) {
         const lineNo = parseInt(lineMatch[1], 10);
         if (lineNo > 0 && lineNo <= codeLines.length) {
           const lineText = codeLines[lineNo - 1];
@@ -248,8 +355,32 @@ export default function AlgorithmChatPanel({ code, language, analysis, apiKey })
         } else {
           reply = `Line ${lineNo} is out of bounds for the current code snippet (${codeLines.length} lines total).`;
         }
-      } else if (query.includes("explain") || query.includes("breakdown") || query.includes("walkthrough")) {
-        reply = `### Code Walkthrough (${language.toUpperCase()})\n\n**Time Complexity:** **${timeO}** | **Space Complexity:** **${spaceO}**\n\n1. **Initialization:** Computes setup state and initial array bounds in $O(1)$ constant time.\n2. **Iteration Pass:** Control loops iterate over input dataset size $N$, multiplying step counts per iteration level.\n3. **Overall Bound:** The worst-case runtime scales as **${timeO}** (Step Formula: \`${formulaStr}\`).`;
+      } else if (query.includes("each line") || query.includes("all lines") || query.includes("line by line") || query.includes("step by step") || query.includes("explain code") || query.includes("walkthrough") || query.includes("explain")) {
+        const breakdownLines = codeLines.map((lText, idx) => {
+          const stripped = lText.trim();
+          if (!stripped) return null;
+          let role = "Statement execution — Performs operation within block scope.";
+          let cost = "$O(1)$ step cost";
+          if (stripped.startsWith("def ") || stripped.startsWith("function ") || stripped.includes("main(")) {
+            role = "Function declaration — Defines scope entry point, allocates parameter call stack frame.";
+            cost = "$O(1)$ constant setup";
+          } else if (stripped.startsWith("if ") || stripped.startsWith("elif ") || stripped.startsWith("else")) {
+            role = "Conditional branch evaluation — Directs execution flow based on boolean condition.";
+            cost = "$O(1)$ constant evaluation";
+          } else if (stripped.startsWith("for ") || stripped.startsWith("while ")) {
+            role = "Loop control header — Drives iterative pass over dataset across N steps.";
+            cost = "$O(N)$ linear pass";
+          } else if (stripped.startsWith("return ")) {
+            role = "Return statement — Returns computed result to caller and releases stack frame memory.";
+            cost = "$O(1)$ constant return";
+          } else if (stripped.includes("append(") || stripped.includes("push(")) {
+            role = "Element insertion — Appends element to dynamic container tail in amortized constant time.";
+            cost = "$O(1)$ amortized";
+          }
+          return `#### **Line ${idx + 1}:** \`${stripped}\`\n- **Explanation:** ${role}\n- **Asymptotic Cost:** ${cost}`;
+        }).filter(Boolean);
+
+        reply = `### Line-by-Line Breakdown of ${language.toUpperCase()} Code (${codeLines.length} Lines)\n\n**Time Complexity:** **${timeO}** | **Space Complexity:** **${spaceO}**\n\n` + breakdownLines.join('\n\n');
       } else if (query.includes("time") || query.includes("big-o") || query.includes("slow") || query.includes("complexity")) {
         reply = `### Time Complexity: **${timeO}**\n\nGoverned by operation formula \`${formulaStr}\`. Loop nesting levels dictate how execution steps scale as input size $N$ grows.`;
       } else if (query.includes("space") || query.includes("memory") || query.includes("ram")) {
@@ -263,7 +394,7 @@ export default function AlgorithmChatPanel({ code, language, analysis, apiKey })
       } else if (query.includes("edge") || query.includes("corner") || query.includes("test")) {
         reply = `### Key Edge Cases to Test:\n1. **Empty input ($N=0$):** Verify no index out of bounds exception.\n2. **Single element ($N=1$):** Check loop termination.\n3. **Large inputs ($N > 100,000$):** Test for timeout or stack overflow.`;
       } else {
-        reply = `### ${language.toUpperCase()} Algorithm Assistant\n\n- **Time Complexity:** **${timeO}**\n- **Space Complexity:** **${spaceO}**\n- **Formula:** \`${formulaStr}\`\n\nAsk me to **explain line numbers**, suggest **optimizations**, or list **edge cases**!`;
+        reply = `### ${language.toUpperCase()} Algorithm Assistant\n\n- **Time Complexity:** **${timeO}**\n- **Space Complexity:** **${spaceO}**\n- **Formula:** \`${formulaStr}\`\n\nAsk me about **recursion, DP, binary search**, **what is use of append**, **explain line numbers**, or **optimizations**!`;
       }
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } finally {

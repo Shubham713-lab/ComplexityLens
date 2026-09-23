@@ -341,6 +341,22 @@ def _parse_code_to_steps(code: str, language: str, time_o: str, space_o: str, fo
     }
 
 
+def _call_gemini_models(client, prompt):
+    models = ["gemini-3.5-flash-lite", "gemini-2.5-flash", "gemini-2.0-flash-lite"]
+    last_err = None
+    for model_name in models:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+            )
+            return response.text.strip(), model_name
+        except Exception as e:
+            last_err = e
+            continue
+    raise last_err if last_err else Exception("No Gemini models available.")
+
+
 def generate_ai_explanation(
     code: str,
     language: str,
@@ -412,11 +428,7 @@ CRITICAL INSTRUCTIONS:
 - "line_costs" MUST have an entry for EVERY line number 1..{len(code.splitlines())}.
 """
 
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-            )
-            raw_text = response.text.strip()
+            raw_text, used_model = _call_gemini_models(client, prompt)
             if raw_text.startswith("```"):
                 lines = raw_text.splitlines()
                 if lines[0].startswith("```"):
@@ -425,7 +437,7 @@ CRITICAL INSTRUCTIONS:
                     lines = lines[:-1]
                 raw_text = "\n".join(lines).strip()
             res_json = json.loads(raw_text)
-            res_json["ai_source"] = "AI Analysis Engine"
+            res_json["ai_source"] = f"Gemini 3.5 Flash Lite ({used_model})"
             return res_json
         except Exception as e:
             print(f"Gemini API Execution Error: {e}")
@@ -465,7 +477,7 @@ def chat_with_ai(
 ) -> str:
     """
     Handle conversational algorithm chat queries from the workspace user.
-    Uses Gemini API with multi-turn conversation context if available, or an advanced 
+    Uses Gemini 3.5 Flash Lite API with multi-turn conversation context if available, or an advanced 
     line-aware and symbol-aware contextual analysis engine as fallback.
     """
     gemini_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
@@ -490,7 +502,7 @@ def chat_with_ai(
                     hist_items.append(f"{role_label}: {m['content']}")
                 history_str = "\n".join(hist_items)
 
-            prompt = f"""You are ComplexityLens AI, an expert Computer Science Professor and Algorithmic Complexity Auditor.
+            prompt = f"""You are ComplexityLens AI, an expert Computer Science Professor, Algorithmic Auditor, and Master Programming Educator.
 
 CODE UNDER ANALYSIS ({language.upper()}):
 ```{language}
@@ -509,21 +521,32 @@ CURRENT USER QUESTION:
 {query}
 
 CRITICAL INSTRUCTIONS:
-- Directly answer the user's specific question about the code above.
-- Do NOT output repetitive static templates or generic boilerplate unless explicitly asked for a full breakdown.
+- Directly and comprehensively answer the user's question, whether it is a definition, programming keyword inquiry, line breakdown, concept explanation, edge case query, or optimization request.
+- SPECIAL INSTRUCTION FOR CONCEPT & DEFINITION QUESTIONS (e.g. "what is recursion", "what is dynamic programming", "meaning of edge case", "what is binary search", "what is memoization"):
+  Provide a structured, educational breakdown:
+  1. **Definition & Core Concept:** Clear explanation of the concept/algorithm.
+  2. **How it Works & Key Properties:** Bullet points detailing core mechanics, base cases, state transitions, or array bounds.
+  3. **Relevance to Current Code:** Explain how this concept applies (or can be applied) to the active {language.upper()} code snippet.
+- SPECIAL INSTRUCTION FOR PROGRAM KEYWORDS & METHODS (e.g. "what is use of append", "what is yield", "what is lambda", "what is self", "what does pop do"):
+  Provide a detailed 3-part response:
+  1. **Definition & Technical Purpose:** Purpose of the keyword/method in standard {language.upper()}.
+  2. **Occurrences in Current Code:** Show every line where it appears (with line numbers) and what it does on that line. (If it does not appear in the current code, state that clearly and give a concrete usage example).
+  3. **Complexity Impact:** Time complexity per call ($O(1)$, $O(N)$) and space memory footprint.
+- SPECIAL INSTRUCTION FOR "EXPLAIN EACH LINE" / "LINE BY LINE" / "WALKTHROUGH":
+  Iterate line-by-line over EVERY line in the code (Line 1 to Line N). For EACH line, output:
+  1. Line number & code snippet (`#### Line X: code`)
+  2. Clear 1-2 sentence explanation of what that line does in the context of the algorithm.
+  3. Execution step cost ($O(1)$, $O(N)$, etc.).
 - Reference line numbers, variable names, functions, and loop levels in your answer.
 - Format code blocks using ```{language} ... ``` with clear comments.
 - Use LaTeX math notation ($O(N)$, $O(N^2)$, $\\Omega(N)$, $T(N)$) for mathematical expressions.
 """
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-            )
-            return response.text.strip()
+            reply_text, used_model = _call_gemini_models(client, prompt)
+            return reply_text
         except Exception as e:
             print(f"Gemini Chat Execution Error: {e}")
 
-    # --- ADVANCED CODE-AWARE FALLBACK ENGINE ---
+    # --- ADVANCED CODE-AWARE & CONCEPT-KNOWLEDGE FALLBACK ENGINE ---
     code_lines = code.splitlines()
     total_lines = len(code_lines)
 
@@ -571,20 +594,57 @@ CRITICAL INSTRUCTIONS:
 
         return "\n".join(out).strip()
 
-    # 2. Full Step-by-Step Code Walkthrough Request
-    if any(k in query_lower for k in ["full breakdown", "step by step", "walkthrough", "line by line", "all steps"]):
-        steps_data = _parse_code_to_steps(code=code, language=language, time_o=time_o, space_o=space_o, formula=formula)
-        steps_list = steps_data.get("step_by_step", [])
-
-        md_lines = [
-            f"### Line-by-Line Walkthrough of `{language.upper()}` Implementation",
-            f"**Time Complexity:** **{time_o}** | **Space Complexity:** **{space_o}**\n"
+    # 2. Complete Line-by-Line Code Walkthrough Request
+    if any(k in query_lower for k in ["explain each line", "each line", "all lines", "line by line", "step by step", "explain code", "code explanation", "breakdown", "walkthrough", "how it works"]):
+        out = [
+            f"### Line-by-Line Breakdown of `{language.upper()}` Implementation ({total_lines} Lines)\n",
+            f"**Time Complexity:** **{time_o}** | **Space Complexity:** **{space_o}** (Step Formula: `{formula}`)\n"
         ]
-        for idx, s in enumerate(steps_list, 1):
-            md_lines.append(f"**Step {idx}: {s['step_title']}** (*{s['line_ref']}*) — `{s['complexity']}`")
-            md_lines.append(f"{s['explanation']}\n")
 
-        return "\n".join(md_lines)
+        for idx, line_text in enumerate(code_lines, 1):
+            stripped = line_text.strip()
+            if not stripped:
+                continue
+
+            indent = len(line_text) - len(line_text.lstrip())
+            depth = max(0, indent // 4) if indent > 0 else 0
+
+            if stripped.startswith("def ") or stripped.startswith("function ") or "main(" in stripped or re.match(r'^(public|private|protected|static|inline|template|\w+)\s+[\w:<>]+\s*\(', stripped):
+                role = "Function declaration — Defines scope entry point, allocates parameter call stack frame."
+                cost = "$O(1)$ constant setup"
+            elif stripped.startswith("if ") or stripped.startswith("elif ") or stripped.startswith("else"):
+                role = "Conditional branch evaluation — Directs execution flow based on boolean condition check."
+                cost = "$O(1)$ constant evaluation"
+            elif stripped.startswith("for ") or stripped.startswith("while "):
+                role = f"Loop control header (Nesting depth {depth+1}) — Drives iterative pass over dataset across $N$ steps."
+                cost = f"$O(N^{depth+1})$" if depth >= 1 else "$O(N)$ linear pass"
+            elif stripped.startswith("return "):
+                role = "Return statement — Returns computed result to caller and releases stack frame memory."
+                cost = "$O(1)$ constant return"
+            elif "append(" in stripped or "push_back(" in stripped or "add(" in stripped:
+                role = "Element insertion — Appends element to dynamic container tail in amortized constant time."
+                cost = "$O(1)$ amortized"
+            elif "pop(" in stripped or "pop_back(" in stripped:
+                role = "Element removal — Removes element from container in constant time."
+                cost = "$O(1)$ constant time"
+            elif "len(" in stripped or ".length" in stripped or ".size()" in stripped:
+                role = "Length evaluation — Accesses container size metadata."
+                cost = "$O(1)$ constant time"
+            elif "[" in stripped and ":" in stripped:
+                role = "Sub-sequence slicing — Extracts sub-array slice, creating new allocated memory copy."
+                cost = "$O(K)$ linear in slice length $K$"
+            elif "=" in stripped:
+                role = "Variable assignment & state update — Computes expression value and stores variable reference."
+                cost = "$O(1)$ constant time"
+            else:
+                role = "Statement execution — Performs operation within current execution block scope."
+                cost = "$O(1)$ step cost"
+
+            out.append(f"#### **Line {idx}:** `{stripped}`")
+            out.append(f"- **Explanation:** {role}")
+            out.append(f"- **Asymptotic Cost:** {cost}\n")
+
+        return "\n".join(out).strip()
 
     # 3. Optimization & Refactored Code Request
     if any(k in query_lower for k in ["optimize", "refactor", "rewrite", "improved code", "faster", "better way", "how to fix"]):
@@ -606,101 +666,263 @@ CRITICAL INSTRUCTIONS:
         res.append(f"\n*This refactored approach eliminates unnecessary iterations to optimize runtime latency.*")
         return "\n".join(res)
 
-    # 4. Definition & Meaning of Concepts Queries (e.g. "what is edge case", "meaning of edge case", "define time complexity")
-    is_definition_query = any(w in query_lower for w in ["what is", "meaning of", "define", "what does", "definition of", "what are"])
-
-    if "edge case" in query_lower or "edge-case" in query_lower or "edge" in query_lower:
-        if is_definition_query or "meaning" in query_lower or "definition" in query_lower:
-            return (
-                f"### What is an Edge Case? (Definition & Meaning)\n\n"
-                f"An **Edge Case** (or boundary condition) is a problem or situation that occurs at the extreme operating limits of an algorithm—such as empty input arrays, maximum integer values, or unexpected data structures.\n\n"
-                f"#### Why Edge Cases Matter:\n"
-                f"- **Prevents Runtime Crashes:** Catches unexpected null pointers, index out of bounds, or division by zero.\n"
-                f"- **Ensures Correctness:** Verifies logic works when input size $N=0$ or $N=1$.\n\n"
-                f"#### Edge Cases in Your {language.upper()} Code:\n"
-                f"1. **Empty Input ($N=0$):** Check if loop headers evaluate safely without crashing.\n"
-                f"2. **Single Element ($N=1$):** Check if logic handles 1 element without out-of-bound errors.\n"
-                f"3. **Duplicates / Extremes:** Test for duplicate values or maximum integer limits."
-            )
-        else:
-            return (
-                f"### Critical Edge Cases to Test ({language.upper()})\n\n"
-                f"1. **Empty / Null Input:** Dataset with $N=0$ elements (ensure no index out of bounds or null reference exception).\n"
-                f"2. **Single Element Input:** Dataset with $N=1$ element (verify loop termination and return value).\n"
-                f"3. **All Identical Elements:** E.g. `[5, 5, 5, 5]` (check for infinite loops or duplicate key collisions).\n"
-                f"4. **Extreme Boundaries:** Maximum integer limits ($N > 100,000$) to evaluate space overflow and execution timeouts."
-            )
-
-    if "big-o" in query_lower or "big o" in query_lower or "time complexity" in query_lower:
-        if is_definition_query or "meaning" in query_lower or "definition" in query_lower:
-            return (
-                f"### What is Time Complexity & Big-O Notation?\n\n"
-                f"**Time Complexity** quantifies the amount of time or computational steps an algorithm takes to execute as the input dataset size $N$ grows.\n\n"
-                f"**Big-O Notation ($O$)** defines the **worst-case upper bound** on runtime performance.\n\n"
-                f"#### Applied to Your Code ({language.upper()}):\n"
-                f"- Worst-case bound: **{time_o}**\n"
-                f"- Operation Step Formula: `{formula}`\n"
-                f"- Scaling behavior: As input $N$ increases, operations grow according to **{time_o}**."
-            )
-        else:
-            loops = [line for line in code_lines if "for " in line or "while " in line]
-            res = [
-                f"### Time Complexity Derivation: **{time_o}**",
-                f"The worst-case execution time scales as **{time_o}** with step operation formula `{formula}`.\n",
-                "**Mathematical Explanation:**"
+    # 4. Computer Science Concepts & Theoretical Definitions Knowledge Base
+    CONCEPT_KB = {
+        "recursion": {
+            "title": "What is Recursion?",
+            "definition": "Recursion is a programming paradigm where a function calls itself to solve smaller instances of the same problem until reaching a termination condition called the **Base Case**.",
+            "points": [
+                "**Base Case:** Stops infinite call tree recursion and prevents stack overflow.",
+                "**Call Stack Depth:** Consumes $O(D)$ auxiliary memory frames for call depth $D$.",
+                "**Subproblem Decomposition:** Used in Divide & Conquer (Merge Sort, Quick Sort, Tree Traversals)."
             ]
-            if len(loops) >= 2:
-                res.append(f"- Your code contains **{len(loops)} nested loops** (`{loops[0].strip()}` and `{loops[1].strip()}`).")
-                res.append(f"- For input size $N$, outer loop runs $N$ times and inner loop runs $N$ times.")
-                res.append(f"- Total Operations: $\\sum_{{i=1}}^{{N}} N = N \\times N = N^2$, yielding worst-case **{time_o}**.")
-            elif len(loops) == 1:
-                res.append(f"- The single control loop (`{loops[0].strip()}`) iterates through input dataset $N$.")
-                res.append(f"- Each element is processed in $O(1)$ constant work per iteration, yielding linear **{time_o}** scaling.")
-            else:
-                res.append(f"- The code executes sequential operations in constant **{time_o}** time.")
+        },
+        "dynamic programming": {
+            "title": "What is Dynamic Programming (DP)?",
+            "definition": "Dynamic Programming is an optimization strategy for solving problems with overlapping subproblems and optimal substructure by caching intermediate results.",
+            "points": [
+                "**Memoization (Top-Down):** Uses recursive calls backed by a lookup table/dictionary.",
+                "**Tabulation (Bottom-Up):** Fills an iterative DP table starting from base cases.",
+                "**Complexity Reduction:** Converts exponential $O(2^N)$ brute-force down to $O(N)$ or $O(N^2)$."
+            ]
+        },
+        "dp": {
+            "title": "What is Dynamic Programming (DP)?",
+            "definition": "Dynamic Programming caches calculated subproblem answers to avoid redundant recomputations.",
+            "points": [
+                "Saves exponential calculation time using array/hash lookup tables.",
+                "Common applications: Knapsack, Longest Common Subsequence, Shortest Paths."
+            ]
+        },
+        "memoization": {
+            "title": "What is Memoization?",
+            "definition": "Memoization is a top-down dynamic programming optimization technique that stores the return values of expensive function calls.",
+            "points": [
+                "**Lookup Check:** Checks if `cache[arg]` exists before running recursive computations.",
+                "**Space-Time Tradeoff:** Uses extra $O(N)$ memory to dramatically reduce runtime complexity."
+            ]
+        },
+        "binary search": {
+            "title": "What is Binary Search?",
+            "definition": "Binary Search is a logarithmic $O(\\log N)$ search algorithm that locates a target element in a **sorted sequence** by repeatedly dividing the search space in half.",
+            "points": [
+                "**Prerequisite:** Array must be sorted upfront.",
+                "**Midpoint Check:** Compares target against `arr[mid]`, eliminating half the remaining elements per pass.",
+                "**Max Iterations:** Requires at most $\\log_2(N)$ comparisons."
+            ]
+        },
+        "divide and conquer": {
+            "title": "What is Divide & Conquer?",
+            "definition": "Divide & Conquer breaks a complex problem into smaller subproblems, solves them recursively, and combines subproblem answers.",
+            "points": [
+                "**Divide:** Bisects dataset size $N$ into sub-parts.",
+                "**Conquer & Combine:** Merges sorted results in $O(N)$ time per tree level.",
+                "Examples: Merge Sort ($O(N \\log N)$), Binary Search ($O(\\log N)$)."
+            ]
+        },
+        "sliding window": {
+            "title": "What is the Sliding Window Technique?",
+            "definition": "Sliding Window maintains a continuous subarray or substring bound using left and right index pointers.",
+            "points": [
+                "Avoids re-scanning overlapping ranges from scratch.",
+                "Reduces nested $O(N^2)$ loops down to linear $O(N)$ execution."
+            ]
+        },
+        "two pointers": {
+            "title": "What is the Two Pointers Technique?",
+            "definition": "Two Pointers uses two index variables iterating simultaneously (from opposite ends or fast/slow speeds) to process arrays.",
+            "points": [
+                "Ideal for sorted array target matching, array reversal, and cycle detection.",
+                "Executes in linear $O(N)$ time with $O(1)$ space."
+            ]
+        },
+        "base case": {
+            "title": "What is a Base Case?",
+            "definition": "A Base Case is the anchor condition in a recursive function that returns a value directly without spawning further recursive calls.",
+            "points": [
+                "Essential to prevent infinite call loops and StackOverflow errors.",
+                "Executes in constant $O(1)$ time."
+            ]
+        },
+        "edge case": {
+            "title": "What is an Edge Case?",
+            "definition": "An Edge Case (boundary condition) occurs at the extreme operational limits of an algorithm—such as $N=0$ empty inputs, single element $N=1$, duplicate values, or max integer bounds.",
+            "points": [
+                "**Prevents Crashes:** Handles null pointers, index out of bounds, and zero-division.",
+                "**Correctness Guarantee:** Ensures algorithm holds under unexpected or minimal input conditions."
+            ]
+        },
+        "big-o": {
+            "title": "What is Big-O Notation?",
+            "definition": "Big-O Notation ($O$) quantifies the worst-case asymptotic upper bound on runtime execution steps or memory allocation as input size $N$ grows toward infinity.",
+            "points": [
+                "**Worst-Case Bound:** Guarantees execution will never exceed this growth rate.",
+                "Applied to your current code: Worst-case complexity is **" + time_o + "**."
+            ]
+        },
+        "time complexity": {
+            "title": "What is Time Complexity?",
+            "definition": "Time Complexity measures how total operation step counts scale relative to input dataset size $N$.",
+            "points": [
+                "Your active code time complexity: **" + time_o + "**.",
+                "Step operation formula: `" + formula + "`."
+            ]
+        },
+        "space complexity": {
+            "title": "What is Space Complexity?",
+            "definition": "Space Complexity measures the auxiliary RAM memory allocated for extra arrays, hash maps, or call stack frames during execution.",
+            "points": [
+                "Your active code space complexity: **" + space_o + "**."
+            ]
+        },
+        "lambda": {
+            "title": "What is a Lambda Function?",
+            "definition": "A `lambda` function is a small, inline anonymous function defined without a standard `def` header.",
+            "points": [
+                "Syntax in Python: `lambda arg1, arg2: expression`.",
+                "Commonly used in `sorted()`, `map()`, and `filter()` callables."
+            ]
+        },
+        "yield": {
+            "title": "What is the `yield` Keyword?",
+            "definition": "`yield` turns a standard function into a Python **Generator**, producing a sequence of values lazily on-demand.",
+            "points": [
+                "**Memory Savings:** Consumes $O(1)$ memory by producing values one-at-a-time.",
+                "Pauses function execution state between calls."
+            ]
+        },
+        "self": {
+            "title": "What is `self` in Python?",
+            "definition": "`self` represents the instance of the object within class methods, allowing direct access to instance attributes and methods.",
+            "points": [
+                "Passed automatically as the first parameter to Python instance methods.",
+                "Binds member variables to object state."
+            ]
+        },
+        "vector": {
+            "title": "What is a `std::vector` in C++?",
+            "definition": "`std::vector` is a dynamic array in C++ that grows automatically when elements are added.",
+            "points": [
+                "**Random Access:** Constant $O(1)$ element lookup via `vec[i]`.",
+                "**Tail Insertion:** Amortized $O(1)$ constant time via `push_back()`."
+            ]
+        },
+        "hashmap": {
+            "title": "What is a HashMap / Dictionary?",
+            "definition": "A Hash Map (`dict` in Python, `unordered_map` in C++) stores key-value pairs using hash tables for rapid indexing.",
+            "points": [
+                "**Lookups & Insertions:** Constant $O(1)$ average time complexity.",
+                "**Space Footprint:** $O(N)$ auxiliary space for $N$ entries."
+            ]
+        }
+    }
+
+    # Match concept from Knowledge Base
+    for concept_key, concept_data in CONCEPT_KB.items():
+        if concept_key in query_lower:
+            res = [
+                f"### {concept_data['title']}\n",
+                f"{concept_data['definition']}\n",
+                "#### Key Mechanics & Properties:"
+            ]
+            for pt in concept_data['points']:
+                res.append(f"- {pt}")
+
+            res.append(f"\n#### Context in Your Active `{language.upper()}` Code:")
+            res.append(f"- Worst-case time complexity: **{time_o}**")
+            res.append(f"- Auxiliary space complexity: **{space_o}**")
+            res.append(f"- Formula: `{formula}`")
             return "\n".join(res)
 
-    if "space complexity" in query_lower or "space" in query_lower or "memory" in query_lower or "ram" in query_lower:
-        if is_definition_query or "meaning" in query_lower or "definition" in query_lower:
-            return (
-                f"### What is Space Complexity? (Definition & Meaning)\n\n"
-                f"**Space Complexity** measures the total amount of memory (RAM) an algorithm allocates during execution relative to input size $N$.\n\n"
-                f"#### Components:\n"
-                f"1. **Auxiliary Memory:** Memory used for extra data structures (HashMaps, arrays, sets).\n"
-                f"2. **Stack Call Memory:** Memory used for recursion call stack frames.\n\n"
-                f"#### For Your Code ({language.upper()}):\n"
-                f"- Auxiliary Space Complexity: **{space_o}**"
-            )
-        else:
-            return (
-                f"### Auxiliary Space Complexity: **{space_o}**\n\n"
-                f"- **State Memory:** Measures additional variables, arrays, sets, maps, or data structures allocated during runtime.\n"
-                f"- **Stack Frame Depth:** Measures maximum recursion stack depth or call stack frames.\n"
-                f"- For this {language.upper()} implementation, space allocation scales as **{space_o}**."
-            )
+    # 5. Program Keyword / Built-in Method Inquiry
+    BUILTIN_EXPLANATIONS = {
+        "append": "In Python, `list.append(item)` adds a single element to the end of a dynamic list in **O(1) amortized constant time**. It appends elements into memory without needing full array copies.",
+        "pop": "In Python, `list.pop()` removes and returns the last element in **O(1)** time. `list.pop(0)` removes from the front, shifting remaining elements in **O(N)** linear time.",
+        "extend": "In Python, `list.extend(iterable)` appends all items from another collection to the list in **O(K)** time, where K is the count of appended items.",
+        "insert": "In Python, `list.insert(index, item)` places an element at a specific index, requiring **O(N)** linear shifting of trailing elements.",
+        "remove": "In Python, `list.remove(value)` searches for the first matching element and removes it in **O(N)** linear time.",
+        "range": "In Python, `range(start, stop, step)` generates an immutable arithmetic sequence of integers on-demand in **O(1)** constant memory.",
+        "len": "In Python/C++/Java/JS, `len()` / `.length` returns the total number of elements stored in a container in constant **O(1)** time.",
+        "sort": "Sorts elements in-place using Timsort (Python) or IntroSort (C++) with a worst-case time complexity of **O(N log N)**.",
+        "sorted": "Returns a new sorted list containing all items from the iterable in **O(N log N)** time and **O(N)** auxiliary space.",
+        "push": "In JavaScript/C++, `array.push(val)` appends an element to the container tail in **O(1)** amortized time.",
+        "push_back": "In C++, `std::vector::push_back(val)` appends an element to the container tail in **O(1)** amortized time.",
+        "emplace_back": "In C++, `std::vector::emplace_back()` constructs an element directly at the tail of the vector in **O(1)** amortized time without copying.",
+        "split": "Splits a string into a list of sub-strings by a specified delimiter in **O(N)** linear time.",
+        "join": "Concatenates elements of an array/list into a single string separated by a string delimiter in **O(N)** linear time.",
+        "add": "Inserts an element into a HashSet/Set in **O(1)** average time.",
+        "put": "Inserts a key-value pair into a HashMap or dictionary in **O(1)** average time.",
+        "get": "Retrieves a value associated with a key from a map or dictionary in **O(1)** average time.",
+        "enumerate": "In Python, `enumerate(iterable)` yields index-element tuples during iteration without allocating extra memory arrays ($O(1)$ space).",
+        "zip": "In Python, `zip(*iterables)` aggregates elements from multiple collections into tuples on-the-fly ($O(1)$ memory generator)."
+    }
 
-
-    # 7. Specific Variable or Identifier Inquiry
     code_words = set(re.findall(r'\b[a-zA-Z_]\w*\b', code))
-    matched_identifiers = [w for w in code_words if w.lower() in query_lower and len(w) > 2 and w not in ["def", "for", "while", "return", "if", "else", "in", "int", "void", "public", "class", "std", "vector"]]
-    if matched_identifiers:
-        var_name = matched_identifiers[0]
+    all_known_words = set(BUILTIN_EXPLANATIONS.keys()).union(code_words)
+    matched_word = next((w for w in all_known_words if w.lower() in query_lower and len(w) > 1 and w.lower() not in ["def", "for", "while", "return", "if", "else", "in", "int", "void", "public", "class", "std", "vector"]), None)
+
+    if matched_word:
+        var_name = matched_word
+        var_lower = var_name.lower()
         matching_code_lines = [(idx+1, line) for idx, line in enumerate(code_lines) if var_name in line]
-        res = [f"### Code Symbol Analysis: `{var_name}`\n"]
-        res.append(f"Found `{var_name}` on {len(matching_code_lines)} line(s) in your {language.upper()} code:")
-        for idx, line in matching_code_lines:
-            res.append(f"- **Line {idx}:** `{line.strip()}`")
-        res.append(f"\n`{var_name}` is a core symbol influencing overall control flow and runtime execution.")
+
+        res = [f"### Code Symbol & Method Analysis: `{var_name}`\n"]
+
+        # 1. Definition & Technical Purpose
+        res.append("#### 1. Definition & Technical Purpose")
+        if var_lower in BUILTIN_EXPLANATIONS:
+            res.append(f"{BUILTIN_EXPLANATIONS[var_lower]}\n")
+        else:
+            res.append(f"`{var_name}` is a variable or function symbol in your {language.upper()} code used to store or transform execution state.\n")
+
+        # 2. Occurrences & Role in Your Code
+        res.append(f"#### 2. Occurrences & Role in Your {language.upper()} Code")
+        if matching_code_lines:
+            res.append(f"Found `{var_name}` on **{len(matching_code_lines)} line(s)**:")
+            for idx, line in matching_code_lines:
+                stripped = line.strip()
+                ctx_note = ""
+                if "append" in var_lower or "push" in var_lower:
+                    ctx_note = " — Inserts element into target dynamic collection."
+                elif "=" in stripped:
+                    ctx_note = " — State assignment/update operation."
+                elif "for " in stripped or "while " in stripped:
+                    ctx_note = " — Evaluates as loop boundary or iterator state."
+                res.append(f"- **Line {idx}:** `{stripped}`{ctx_note}")
+        else:
+            res.append(f"`{var_name}` is a standard {language.upper()} keyword/symbol. It does not explicitly appear in your active code snippet, but is a core language feature.")
+        res.append("")
+
+        # 3. Complexity & Algorithmic Impact
+        res.append("#### 3. Asymptotic & Performance Impact")
+        if var_lower in ["append", "push", "push_back", "emplace_back"]:
+            res.append(f"- **Time Complexity:** Executed in **$O(1)$ amortized constant time** per call.")
+            res.append(f"- **Space Complexity:** Allocates memory in dynamic buffer, accumulating **$O(N)$ auxiliary space** across $N$ elements.")
+        elif var_lower in ["pop", "remove", "insert", "splice"]:
+            res.append(f"- **Time Complexity:** Standard pop/remove from end is **$O(1)$**, while popping index 0 or inserting requires **$O(N)$ linear element shifting**.")
+            res.append(f"- **Space Complexity:** Modifies existing array in-place ($O(1)$ extra space).")
+        elif var_lower in ["sort", "sorted"]:
+            res.append(f"- **Time Complexity:** Executes worst-case **$O(N \\log N)$** sorting comparison passes.")
+            res.append(f"- **Space Complexity:** Requires **$O(N)$** auxiliary memory (Timsort/merge allocation).")
+        elif var_lower in ["range", "len", "size", "length"]:
+            res.append(f"- **Time Complexity:** Constant **$O(1)$** metadata access / sequence generator.")
+            res.append(f"- **Space Complexity:** Constant **$O(1)$** auxiliary space.")
+        else:
+            res.append(f"- Operating on `{var_name}` executes in constant **$O(1)$** time per line pass.")
+
         return "\n".join(res)
 
-    # 8. Direct Line / Context Aware General Answer
+    # 6. Fallback General Code & Algorithm Explanation
     return (
-        f"### {language.upper()} Algorithm Assistant\n\n"
-        f"I analyzed your code (**Time Complexity:** **{time_o}**, **Space Complexity:** **{space_o}**, Formula: `{formula}`).\n\n"
-        f"You can ask me specific questions such as:\n"
-        f"- *\"Explain line 3\"*\n"
-        f"- *\"How can I optimize this code to O(N)?\"*\n"
-        f"- *\"Why is the time complexity {time_o}?\"*\n"
+        f"### {language.upper()} Code & Algorithm Explanation\n\n"
+        f"**Algorithm Metric Summary:**\n"
+        f"- **Worst-Case Time Complexity:** **{time_o}**\n"
+        f"- **Auxiliary Space Complexity:** **{space_o}**\n"
+        f"- **Operation Step Formula:** `{formula}`\n\n"
+        f"**What would you like to know?** You can ask me:\n"
+        f"- *\"What is recursion / dynamic programming / binary search?\"*\n"
+        f"- *\"What is the use of append / pop / range / lambda?\"*\n"
+        f"- *\"Explain line 3\" or \"Explain each line\"*\n"
         f"- *\"What edge cases should I test?\"*\n"
-        f"- *\"Give me a step-by-step walkthrough of all lines\"*"
+        f"- *\"How can I optimize this code to O(N)?\"*"
     )
