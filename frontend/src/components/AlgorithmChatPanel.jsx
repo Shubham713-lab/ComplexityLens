@@ -245,20 +245,34 @@ export default function AlgorithmChatPanel({ code, language, analysis, apiKey })
       console.warn("Chat API error, using smart fallback response:", err);
       let reply = "";
       const query = text.toLowerCase();
-      if (query.includes("explain") || query.includes("breakdown") || query.includes("works") || query.includes("detail")) {
-        reply = `### Code Explanation (${language.toUpperCase()})\n\n**Time Complexity:** **${timeO}** | **Space Complexity:** **${spaceO}**\n\n1. **Initialization:** The function computes setup state and initial array bounds in $O(1)$ constant time.\n2. **Iteration Pass:** Control loops iterate over input dataset size $N$, multiplying step counts per iteration level.\n3. **Overall Bound:** The worst-case runtime scales as **${timeO}** (Step Formula: \`${formulaStr}\`).`;
+      const codeLines = (code || '').split('\n');
+
+      // Check specific line inquiry
+      const lineMatch = query.match(/\bline[s]?\s*(\d+)/);
+      if (lineMatch) {
+        const lineNo = parseInt(lineMatch[1], 10);
+        if (lineNo > 0 && lineNo <= codeLines.length) {
+          const lineText = codeLines[lineNo - 1];
+          reply = `### Line ${lineNo} Inquiry\n\n\`\`\`${language}\n${lineNo}: ${lineText}\n\`\`\`\n- **Statement:** \`${lineText.strip ? lineText.strip() : lineText.trim()}\`\n- **Impact:** Contributes to the overall **${timeO}** time complexity and state execution logic.`;
+        } else {
+          reply = `Line ${lineNo} is out of bounds for the current code snippet (${codeLines.length} lines total).`;
+        }
+      } else if (query.includes("explain") || query.includes("breakdown") || query.includes("walkthrough")) {
+        reply = `### Code Walkthrough (${language.toUpperCase()})\n\n**Time Complexity:** **${timeO}** | **Space Complexity:** **${spaceO}**\n\n1. **Initialization:** The function computes setup state and initial array bounds in $O(1)$ constant time.\n2. **Iteration Pass:** Control loops iterate over input dataset size $N$, multiplying step counts per iteration level.\n3. **Overall Bound:** The worst-case runtime scales as **${timeO}** (Step Formula: \`${formulaStr}\`).`;
       } else if (query.includes("time") || query.includes("big-o") || query.includes("slow") || query.includes("complexity")) {
-        reply = `The algorithm has a worst-case time complexity of **${timeO}**. This is governed by operation formula \`${formulaStr}\`. Loop levels dictate how steps scale with input size $N$.`;
-      } else if (query.includes("space") || query.includes("memory")) {
-        reply = `The space complexity is **${spaceO}**. Memory is allocated for scalar variables and function call frames on the stack.`;
-      } else if (query.includes("optimize") || query.includes("refactor") || query.includes("improve")) {
+        reply = `### Time Complexity: **${timeO}**\n\nGoverned by operation formula \`${formulaStr}\`. Loop nesting levels dictate how execution steps scale as input size $N$ grows.`;
+      } else if (query.includes("space") || query.includes("memory") || query.includes("ram")) {
+        reply = `### Space Complexity: **${spaceO}**\n\nMemory footprint accounts for scalar variables, dynamic data structures, and call stack frames allocated during execution.`;
+      } else if (query.includes("optimize") || query.includes("refactor") || query.includes("improve") || query.includes("rewrite")) {
         if (timeO.includes("N²") || timeO.includes("N^2")) {
-          reply = `To optimize from **${timeO}** to **O(N)**:\n1. Use a Hash Map / HashSet to achieve $O(1)$ lookups.\n2. Sort the input array to apply a Two-Pointer technique.`;
+          reply = `### Optimization Strategy (${language.toUpperCase()})\n\nTo optimize from **${timeO}** to **O(N)**:\n1. Use a **Hash Map / HashSet** for constant-time $O(1)$ lookups.\n2. Sort the input array upfront to apply a **Two-Pointer** sliding window.`;
         } else {
           reply = `Your implementation is already operating at an optimal **${timeO}** asymptotic bound!`;
         }
+      } else if (query.includes("edge") || query.includes("corner") || query.includes("test")) {
+        reply = `### Key Edge Cases to Test:\n1. **Empty input ($N=0$):** Verify no index out of bounds exception.\n2. **Single element ($N=1$):** Check loop termination.\n3. **Large inputs ($N > 100,000$):** Test for timeout or stack overflow.`;
       } else {
-        reply = `For this ${language.toUpperCase()} algorithm with **${timeO}** time complexity:\n- Operation Formula: \`${formulaStr}\`\n- Ask me to **explain the code**, suggest **optimizations**, or list **edge cases**!`;
+        reply = `### ${language.toUpperCase()} Algorithm Assistant\n\n- **Time Complexity:** **${timeO}**\n- **Space Complexity:** **${spaceO}**\n- **Formula:** \`${formulaStr}\`\n\nAsk me to **explain line numbers**, suggest **optimizations**, or list **edge cases**!`;
       }
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } finally {

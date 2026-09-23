@@ -465,34 +465,56 @@ def chat_with_ai(
 ) -> str:
     """
     Handle conversational algorithm chat queries from the workspace user.
-    Uses Gemini API if available, or smart contextual rule-based answers as fallback.
+    Uses Gemini API with multi-turn conversation context if available, or an advanced 
+    line-aware and symbol-aware contextual analysis engine as fallback.
     """
     gemini_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if gemini_key and (gemini_key.startswith("AIzaSyBQwHDTeiD") or len(gemini_key) < 15):
         gemini_key = None
 
     last_user_msg = messages[-1]["content"] if messages else "Explain this algorithm."
+    query = last_user_msg.strip()
+    query_lower = query.lower()
 
     if gemini_key:
         try:
             from google import genai
             client = genai.Client(api_key=gemini_key)
-            prompt = f"""You are an expert Computer Science Assistant & Algorithmic Complexity Auditor.
-The user is inspecting the following {language.upper()} code in ComplexityLens:
 
+            # Format multi-turn conversation history (up to last 6 messages)
+            history_str = ""
+            if len(messages) > 1:
+                hist_items = []
+                for m in messages[-6:-1]:
+                    role_label = "User" if m["role"] == "user" else "Assistant"
+                    hist_items.append(f"{role_label}: {m['content']}")
+                history_str = "\n".join(hist_items)
+
+            prompt = f"""You are ComplexityLens AI, an expert Computer Science Professor and Algorithmic Complexity Auditor.
+
+CODE UNDER ANALYSIS ({language.upper()}):
 ```{language}
 {code}
 ```
 
-Current Analysis:
+METRICS:
 - Time Complexity: {time_o}
 - Space Complexity: {space_o}
-- Step Formula: {formula}
+- Operation Step Formula: {formula}
 
-User Question: {last_user_msg}
+CONVERSATION HISTORY:
+{history_str if history_str else "None"}
 
-Answer concisely, accurately, and clearly. Use markdown formatting and math notation where relevant (e.g. O(N²), T(N)). Provide short code snippets if asked for optimizations or edge cases."""
+CURRENT USER QUESTION:
+{query}
 
+CRITICAL INSTRUCTIONS:
+- Directly answer the user's specific question about the code above.
+- Do NOT output repetitive static templates or generic boilerplate unless explicitly asked for a full breakdown.
+- Reference line numbers, variable names, functions, and loop levels in your answer.
+- Format code blocks using ```{language} ... ``` with clear comments.
+- Use LaTeX math notation ($O(N)$, $O(N^2)$, $\\Omega(N)$, $T(N)$) for mathematical expressions.
+"""
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
@@ -501,50 +523,148 @@ Answer concisely, accurately, and clearly. Use markdown formatting and math nota
         except Exception as e:
             print(f"Gemini Chat Execution Error: {e}")
 
-    # Smart Code-Aware Analysis Assistant Fallback
-    query = last_user_msg.lower()
+    # --- ADVANCED CODE-AWARE FALLBACK ENGINE ---
+    code_lines = code.splitlines()
+    total_lines = len(code_lines)
 
-    # Handle Explanation & Walkthrough queries
-    if any(k in query for k in ["explain", "breakdown", "how it works", "walkthrough", "understand", "detail", "step"]):
+    # 1. Specific Line Inquiry (e.g. "explain line 3", "what does line 5 do?", "line 2")
+    line_match = re.search(r'\bline[s]?\s*(\d+)(?:\s*(?:to|-|and)\s*(\d+))?', query_lower)
+    if line_match:
+        l1 = int(line_match.group(1))
+        l2 = int(line_match.group(2)) if line_match.group(2) else l1
+        l1_valid = max(1, min(l1, total_lines))
+        l2_valid = max(l1_valid, min(l2, total_lines))
+
+        selected_lines = [(i, code_lines[i-1]) for i in range(l1_valid, l2_valid + 1)]
+        line_ref_str = f"Line {l1_valid}" if l1_valid == l2_valid else f"Lines {l1_valid} to {l2_valid}"
+
+        out = [f"### Code Inquiry: **{line_ref_str}**\n"]
+        for idx, line_text in selected_lines:
+            stripped = line_text.strip()
+            indent = len(line_text) - len(line_text.lstrip())
+            depth = max(1, indent // 4) if indent > 0 else 0
+
+            cost = "O(1)"
+            role = "State Setup / Statement"
+            if "for " in stripped or "while " in stripped:
+                cost = "O(N)" if depth <= 1 else f"O(N^{depth})"
+                role = f"Loop Iteration Header (Nesting Depth {depth})"
+            elif "if " in stripped or "elif " in stripped or "else" in stripped:
+                cost = "O(1)"
+                role = "Conditional Branch Evaluation"
+            elif "return " in stripped:
+                cost = "O(1)"
+                role = "Result Return & Stack Frame Teardown"
+            elif depth > 0:
+                cost = "O(N)" if depth == 1 else f"O(N^{depth})"
+                role = f"Inner Operation Body (Executes inside depth-{depth} loop)"
+
+            out.append(f"```{language}\n{idx}: {line_text}\n```")
+            out.append(f"- **Role:** {role}")
+            out.append(f"- **Asymptotic Step Cost:** `{cost}`")
+            out.append(f"- **Code Statement:** `{stripped}`")
+            if "for " in stripped or "while " in stripped:
+                out.append(f"  - Drives loop iteration over input sequence. Scales total operation count proportionally by $N$ per level.")
+            elif "if " in stripped:
+                out.append(f"  - Evaluates condition logic to control execution flow.")
+            out.append("")
+
+        return "\n".join(out).strip()
+
+    # 2. Full Step-by-Step Code Walkthrough Request
+    if any(k in query_lower for k in ["full breakdown", "step by step", "walkthrough", "line by line", "all steps"]):
         steps_data = _parse_code_to_steps(code=code, language=language, time_o=time_o, space_o=space_o, formula=formula)
         steps_list = steps_data.get("step_by_step", [])
-        
-        md_lines = [
-            f"### Algorithm Execution & Complexity Breakdown",
-            f"The submitted **{language.capitalize()}** implementation runs with a worst-case time complexity of **{time_o}** and auxiliary space complexity of **{space_o}** (Step Formula: `{formula}`).\n",
-            f"#### Line-by-Line Execution Steps:"
-        ]
-        
-        for idx, s in enumerate(steps_list, 1):
-            md_lines.append(f"{idx}. **{s['step_title']}** (*{s['line_ref']}*) — `{s['complexity']}`")
-            md_lines.append(f"   {s['explanation']}\n")
-            
-        bottlenecks = steps_data.get("bottlenecks", [])
-        if bottlenecks:
-            md_lines.append("#### Performance Bottlenecks:")
-            for b in bottlenecks:
-                md_lines.append(f"- {b}")
 
-        opts = steps_data.get("optimization_suggestions", [])
-        if opts:
-            md_lines.append("\n#### Suggested Optimizations:")
-            for o in opts:
-                md_lines.append(f"- {o}")
-                
+        md_lines = [
+            f"### Line-by-Line Walkthrough of `{language.upper()}` Implementation",
+            f"**Time Complexity:** **{time_o}** | **Space Complexity:** **{space_o}**\n"
+        ]
+        for idx, s in enumerate(steps_list, 1):
+            md_lines.append(f"**Step {idx}: {s['step_title']}** (*{s['line_ref']}*) — `{s['complexity']}`")
+            md_lines.append(f"{s['explanation']}\n")
+
         return "\n".join(md_lines)
 
-    if "time" in query or "big-o" in query or "slow" in query or "fast" in query or "complexity" in query:
-        return f"The algorithm has a worst-case time complexity of **{time_o}**. This is governed by step operation formula `{formula}`. The nested loop levels determine how execution steps scale as input size $N$ grows."
-    elif "space" in query or "memory" in query or "auxiliary" in query:
-        return f"The space complexity is **{space_o}**. Memory is allocated for variables and execution stack frames during runtime."
-    elif "optimize" in query or "refactor" in query or "better" in query or "improve" in query:
-        if "N²" in time_o or "N^2" in time_o:
-            return f"To optimize from **{time_o}** down to **O(N)**, consider using a Hash Map/HashSet to store previously seen elements, or sorting the input upfront to use a Two-Pointer sliding window."
-        elif "2^N" in time_o:
-            return f"To optimize from exponential **{time_o}** to **O(N)**, apply Dynamic Programming memoization (storing subproblem call results) or bottom-up iterative tabulation."
+    # 3. Optimization & Refactored Code Request
+    if any(k in query_lower for k in ["optimize", "refactor", "rewrite", "improved code", "faster", "better way", "how to fix"]):
+        steps_data = _parse_code_to_steps(code=code, language=language, time_o=time_o, space_o=space_o, formula=formula)
+        opt_code = steps_data.get("optimized_code", code)
+        opts = steps_data.get("optimization_suggestions", [])
+
+        res = [
+            f"### Optimization & Refactoring Guide for {language.upper()}",
+            f"Current worst-case time complexity is **{time_o}**."
+        ]
+        if opts:
+            res.append("\n**Key Improvement Strategies:**")
+            for o in opts:
+                res.append(f"- {o}")
+
+        res.append(f"\n**Refactored Solution:**")
+        res.append(f"```{language}\n{opt_code}\n```")
+        res.append(f"\n*This refactored approach eliminates unnecessary iterations to optimize runtime latency.*")
+        return "\n".join(res)
+
+    # 4. Time Complexity / Big-O Derivation Request
+    if any(k in query_lower for k in ["time complexity", "time", "big-o", "big o", "why o(", "slow", "growth", "formula"]):
+        loops = [line for line in code_lines if "for " in line or "while " in line]
+        res = [
+            f"### Time Complexity Derivation: **{time_o}**",
+            f"The worst-case execution time scales as **{time_o}** with step operation formula `{formula}`.\n",
+            "**Mathematical Explanation:**"
+        ]
+        if len(loops) >= 2:
+            res.append(f"- Your code contains **{len(loops)} nested loops** (`{loops[0].strip()}` and `{loops[1].strip()}`).")
+            res.append(f"- For an input size of $N$, the outer loop runs $N$ times, and for each iteration, the inner loop runs $N$ times.")
+            res.append(f"- Total Operations: $\\sum_{{i=1}}^{{N}} N = N \\times N = N^2$, yielding worst-case **{time_o}**.")
+        elif len(loops) == 1:
+            res.append(f"- The single control loop (`{loops[0].strip()}`) iterates through the input dataset of length $N$.")
+            res.append(f"- Each element is processed in $O(1)$ constant work per iteration, yielding linear **{time_o}** scaling.")
         else:
-            return f"The current code is already running at an optimal **{time_o}** asymptotic time complexity."
-    elif "edge" in query or "corner" in query or "bug" in query or "test" in query:
-        return f"Key edge cases to test for this {language.capitalize()} algorithm:\n1. Empty input datasets ($N=0$)\n2. Single-element inputs ($N=1$)\n3. Large input boundaries ($N > 100,000$)\n4. Duplicate elements or negative integer inputs."
-    else:
-        return f"For this {language.capitalize()} algorithm with **{time_o}** time complexity and **{space_o}** space complexity:\n- Step Formula: `{formula}`\n- You can ask me to **explain the code line-by-line**, suggest **optimizations**, or list **edge cases**!"
+            res.append(f"- The code consists of sequential operations without scaling loops, executing in constant **{time_o}** time.")
+        return "\n".join(res)
+
+    # 5. Space Complexity Inquiry
+    if any(k in query_lower for k in ["space", "memory", "stack", "auxiliary", "ram", "allocation"]):
+        return (
+            f"### Auxiliary Space Complexity: **{space_o}**\n\n"
+            f"- **State Memory:** Measures additional variables, arrays, sets, maps, or data structures allocated during runtime.\n"
+            f"- **Stack Frame Depth:** Measures maximum recursion stack depth or call stack frames.\n"
+            f"- For this {language.upper()} implementation, space allocation scales as **{space_o}**."
+        )
+
+    # 6. Edge Cases Inquiry
+    if any(k in query_lower for k in ["edge case", "edge", "corner", "test", "boundary", "fail", "bug"]):
+        return (
+            f"### Critical Edge Cases to Test ({language.upper()})\n\n"
+            f"1. **Empty / Null Input:** Dataset with $N=0$ elements (ensure no index out of bounds or null reference exception).\n"
+            f"2. **Single Element Input:** Dataset with $N=1$ element (verify loop termination and return value).\n"
+            f"3. **All Identical Elements:** E.g. `[5, 5, 5, 5]` (check for infinite loops or duplicate key collisions).\n"
+            f"4. **Extreme Boundaries:** Maximum integer limits ($N > 100,000$) to evaluate space overflow and execution timeouts."
+        )
+
+    # 7. Specific Variable or Identifier Inquiry
+    code_words = set(re.findall(r'\b[a-zA-Z_]\w*\b', code))
+    matched_identifiers = [w for w in code_words if w.lower() in query_lower and len(w) > 2 and w not in ["def", "for", "while", "return", "if", "else", "in", "int", "void", "public", "class", "std", "vector"]]
+    if matched_identifiers:
+        var_name = matched_identifiers[0]
+        matching_code_lines = [(idx+1, line) for idx, line in enumerate(code_lines) if var_name in line]
+        res = [f"### Code Symbol Analysis: `{var_name}`\n"]
+        res.append(f"Found `{var_name}` on {len(matching_code_lines)} line(s) in your {language.upper()} code:")
+        for idx, line in matching_code_lines:
+            res.append(f"- **Line {idx}:** `{line.strip()}`")
+        res.append(f"\n`{var_name}` is a core symbol influencing overall control flow and runtime execution.")
+        return "\n".join(res)
+
+    # 8. Direct Line / Context Aware General Answer
+    return (
+        f"### {language.upper()} Algorithm Assistant\n\n"
+        f"I analyzed your code (**Time Complexity:** **{time_o}**, **Space Complexity:** **{space_o}**, Formula: `{formula}`).\n\n"
+        f"You can ask me specific questions such as:\n"
+        f"- *\"Explain line 3\"*\n"
+        f"- *\"How can I optimize this code to O(N)?\"*\n"
+        f"- *\"Why is the time complexity {time_o}?\"*\n"
+        f"- *\"What edge cases should I test?\"*\n"
+        f"- *\"Give me a step-by-step walkthrough of all lines\"*"
+    )
