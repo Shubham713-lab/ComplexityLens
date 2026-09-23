@@ -48,9 +48,6 @@ export default function Header({
               <h1 className="text-base font-bold tracking-tight text-stone-900 dark:text-stone-100 font-mono">
                 ComplexityLens
               </h1>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-orange-700 dark:text-orange-400 font-bold border border-orange-600/30 dark:border-orange-500/30 px-1 py-0.2 rounded-sm bg-orange-500/10">
-                v1.0
-              </span>
             </div>
           </div>
         </div>

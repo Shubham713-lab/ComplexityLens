@@ -150,7 +150,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen h-screen flex flex-col bg-[#fbf9f5] dark:bg-[#0f0f11] text-stone-900 dark:text-stone-100 font-sans transition-colors duration-150 overflow-hidden">
+    <div className={`flex flex-col bg-[#fbf9f5] dark:bg-[#0f0f11] text-stone-900 dark:text-stone-100 font-sans transition-colors duration-150 ${
+      currentView === 'workspace' ? 'h-screen overflow-hidden' : 'min-h-screen overflow-y-auto'
+    }`}>
       {currentView === 'home' ? (
         <HomePage
           onLaunchAnalyzer={handleLaunchAnalyzer}

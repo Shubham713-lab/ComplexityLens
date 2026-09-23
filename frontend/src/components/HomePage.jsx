@@ -101,12 +101,6 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
       <div className="w-full space-y-16 py-8 pb-12">
         {/* HERO SECTION */}
         <section className="relative px-6 pt-6 md:pt-10 max-w-6xl mx-auto flex flex-col items-center text-center space-y-6">
-          {/* Technical Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-stone-200/80 dark:bg-zinc-900 border border-stone-300 dark:border-zinc-800 text-[11px] font-mono font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-400">
-            <span className="w-2 h-2 rounded-full bg-orange-600 inline-block" />
-            <span>Algorithmic & Asymptotic Inspection Suite</span>
-          </div>
-
           {/* Headline */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold font-sans tracking-tight max-w-4xl leading-[1.15] text-stone-900 dark:text-stone-100">
             Calculate Code Complexity & Step Formulas{' '}

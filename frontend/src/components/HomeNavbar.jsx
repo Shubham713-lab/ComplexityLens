@@ -31,9 +31,6 @@ export default function HomeNavbar({ onLaunchAnalyzer, theme, setTheme }) {
             <h1 className="text-base font-bold tracking-tight text-stone-900 dark:text-stone-100 font-mono">
               ComplexityLens
             </h1>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-stone-600 dark:text-zinc-400 font-semibold border border-stone-300 dark:border-zinc-700 px-1 py-0.2 rounded">
-              Engineering Suite
-            </span>
           </div>
         </div>
 
