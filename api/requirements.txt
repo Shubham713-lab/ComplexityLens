@@ -1,0 +1,8 @@
+fastapi>=0.100.0
+uvicorn>=0.22.0
+sympy>=1.12
+networkx>=3.1
+google-genai
+pytest>=7.4.0
+pydantic>=2.0.0
+python-dotenv
