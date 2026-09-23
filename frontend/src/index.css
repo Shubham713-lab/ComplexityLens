@@ -6,24 +6,26 @@
 
 :root {
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #f1f5f9;
-  background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
-                    radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.05) 0px, transparent 50%);
-  color: #0f172a;
+  background-color: #fbf9f5;
+  color: #1c1917;
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   overflow-x: hidden;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .dark body {
-  background-color: #0b0f19;
-  background-image: none;
-  color: #f8fafc;
+  background-color: #0f0f11;
+  color: #f5f5f4;
 }
 
 /* Developer Monospace Font & Ligatures */
@@ -32,59 +34,54 @@ code, pre, .font-mono {
   font-feature-settings: "liga" 1, "calt" 1;
 }
 
-/* Custom Scrollbars */
+/* Custom Swiss Engineering Minimal Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f1ede6;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: #d6d0c4;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #c2baaa;
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #18181b;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #27272a;
+  border-radius: 2px;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #3f3f46;
 }
 
-/* Glassmorphism utility */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 4px 15px -1px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+/* Swiss Engineering Technical Panels (No Glassmorphism / No Glow) */
+.glass-panel, .swiss-panel {
+  background-color: #f8f6f0;
+  border: 1px solid #e7e2d7;
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.04);
 }
 
-.dark .glass-panel {
-  background: rgba(19, 27, 46, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+.dark .glass-panel, .dark .swiss-panel {
+  background-color: #18181b;
+  border: 1px solid #27272a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.glass-card {
-  background: #f8fafc;
-  backdrop-filter: blur(8px);
-  border: 1px solid #e2e8f0;
+.glass-card, .swiss-card {
+  background-color: #f3efe6;
+  border: 1px solid #dfd8cb;
 }
 
-.dark .glass-card {
-  background: rgba(30, 41, 59, 0.5);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+.dark .glass-card, .dark .swiss-card {
+  background-color: #202024;
+  border: 1px solid #2e2e33;
 }
 
 /* KaTeX Custom Polish */
@@ -101,51 +98,51 @@ code, pre, .font-mono {
   font-style: italic;
 }
 
-/* React Flow Controls Styling */
+/* React Flow Controls Styling - Technical Editorial */
 .react-flow__controls {
-  background: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  background: #f8f6f0 !important;
+  border: 1px solid #d6cebf !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
   overflow: hidden;
 }
 
 .dark .react-flow__controls {
-  background: #0f172a !important;
-  border: 1px solid #1e293b !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+  background: #18181b !important;
+  border: 1px solid #27272a !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 .react-flow__controls-button {
-  background: #ffffff !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  color: #0284c7 !important;
-  fill: #0284c7 !important;
-  width: 30px !important;
-  height: 30px !important;
+  background: #f8f6f0 !important;
+  border-bottom: 1px solid #e7e2d7 !important;
+  color: #c2410c !important;
+  fill: #c2410c !important;
+  width: 28px !important;
+  height: 28px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.15s ease !important;
 }
 
 .dark .react-flow__controls-button {
-  background: #0f172a !important;
-  border-bottom: 1px solid #1e293b !important;
-  color: #38bdf8 !important;
-  fill: #38bdf8 !important;
+  background: #18181b !important;
+  border-bottom: 1px solid #27272a !important;
+  color: #ea580c !important;
+  fill: #ea580c !important;
 }
 
 .react-flow__controls-button:hover {
-  background: #f1f5f9 !important;
-  color: #0369a1 !important;
-  fill: #0369a1 !important;
+  background: #efebe1 !important;
+  color: #9a3412 !important;
+  fill: #9a3412 !important;
 }
 
 .dark .react-flow__controls-button:hover {
-  background: #1e293b !important;
-  color: #06b6d4 !important;
-  fill: #06b6d4 !important;
+  background: #27272a !important;
+  color: #f97316 !important;
+  fill: #f97316 !important;
 }
 
 .react-flow__controls-button svg {
@@ -154,130 +151,80 @@ code, pre, .font-mono {
   max-height: 14px !important;
 }
 
+/* React Flow Node Styling - Technical Swiss Colors */
 .react-flow__node {
-  border-radius: 8px !important;
+  border-radius: 4px !important;
   font-family: 'JetBrains Mono', monospace !important;
-  font-size: 12px !important;
-  padding: 10px 14px !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+  font-size: 11px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
 }
 
 .react-flow__node-startNode {
-  background: linear-gradient(135deg, #059669, #10b981) !important;
-  border: 1px solid #34d399 !important;
+  background: #15803d !important;
+  border: 1px solid #166534 !important;
+  color: #ffffff !important;
+}
+
+.dark .react-flow__node-startNode {
+  background: #166534 !important;
+  border: 1px solid #22c55e !important;
   color: #ffffff !important;
 }
 
 .react-flow__node-endNode {
-  background: linear-gradient(135deg, #e11d48, #f43f5e) !important;
-  border: 1px solid #fb7185 !important;
+  background: #c2410c !important;
+  border: 1px solid #9a3412 !important;
+  color: #ffffff !important;
+}
+
+.dark .react-flow__node-endNode {
+  background: #ea580c !important;
+  border: 1px solid #f97316 !important;
   color: #ffffff !important;
 }
 
 .react-flow__node-loopNode {
-  background: linear-gradient(135deg, #0284c7, #38bdf8) !important;
-  border: 1px solid #7dd3fc !important;
-  color: #ffffff !important;
+  background: #451a03 !important;
+  border: 1px solid #9a3412 !important;
+  color: #ffedd5 !important;
+}
+
+.dark .react-flow__node-loopNode {
+  background: #271406 !important;
+  border: 1px solid #ea580c !important;
+  color: #ffedd5 !important;
 }
 
 .react-flow__node-branchNode {
-  background: linear-gradient(135deg, #d97706, #f59e0b) !important;
-  border: 1px solid #fcd34d !important;
-  color: #ffffff !important;
+  background: #854d0e !important;
+  border: 1px solid #a16207 !important;
+  color: #fef9c3 !important;
 }
 
-.react-flow__node-recursionNode {
-  background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
-  border: 1px solid #c084fc !important;
-  color: #ffffff !important;
+.dark .react-flow__node-branchNode {
+  background: #3f2c06 !important;
+  border: 1px solid #ca8a04 !important;
+  color: #fef9c3 !important;
 }
 
 .react-flow__node-statementNode {
-  background: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  color: #0f172a !important;
+  background: #f8f6f0 !important;
+  border: 1px solid #d6cebf !important;
+  color: #1c1917 !important;
 }
 
 .dark .react-flow__node-statementNode {
-  background: #1e293b !important;
-  border: 1px solid #334155 !important;
-  color: #f8fafc !important;
+  background: #18181b !important;
+  border: 1px solid #27272a !important;
+  color: #f5f5f4 !important;
 }
 
 .react-flow__edge-path {
-  stroke: #94a3b8 !important;
-  stroke-width: 2px !important;
+  stroke: #78716c !important;
+  stroke-width: 1.5px !important;
 }
 
 .dark .react-flow__edge-path {
-  stroke: #475569 !important;
-}
-
-/* Monaco Line Heatmap Decorations */
-.line-heatmap-high {
-  background: rgba(244, 63, 94, 0.12) !important;
-  border-left: 3px solid #e11d48 !important;
-}
-
-.dark .line-heatmap-high {
-  background: rgba(244, 63, 94, 0.18) !important;
-  border-left: 3px solid #f43f5e !important;
-}
-
-.line-heatmap-mid {
-  background: rgba(245, 158, 11, 0.12) !important;
-  border-left: 3px solid #d97706 !important;
-}
-
-.dark .line-heatmap-mid {
-  background: rgba(245, 158, 11, 0.15) !important;
-  border-left: 3px solid #f59e0b !important;
-}
-
-.line-heatmap-log {
-  background: rgba(6, 182, 212, 0.12) !important;
-  border-left: 3px solid #0891b2 !important;
-}
-
-.dark .line-heatmap-log {
-  background: rgba(6, 182, 212, 0.15) !important;
-  border-left: 3px solid #06b6d4 !important;
-}
-
-.line-heatmap-low {
-  background: rgba(16, 185, 129, 0.08) !important;
-  border-left: 3px solid #059669 !important;
-}
-
-.dark .line-heatmap-low {
-  background: rgba(16, 185, 129, 0.1) !important;
-  border-left: 3px solid #10b981 !important;
-}
-
-/* Pulsing Glow Animation */
-@keyframes glow-pulse-red {
-  0%, 100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.25); border-color: rgba(244, 63, 94, 0.5); }
-  50% { box-shadow: 0 0 25px rgba(244, 63, 94, 0.45); border-color: rgba(244, 63, 94, 0.8); }
-}
-
-@keyframes glow-pulse-cyan {
-  0%, 100% { box-shadow: 0 0 15px rgba(6, 182, 212, 0.25); border-color: rgba(6, 182, 212, 0.5); }
-  50% { box-shadow: 0 0 25px rgba(6, 182, 212, 0.45); border-color: rgba(6, 182, 212, 0.8); }
-}
-
-@keyframes glow-pulse-emerald {
-  0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.5); }
-  50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.45); border-color: rgba(16, 185, 129, 0.8); }
-}
-
-.animate-glow-red {
-  animation: glow-pulse-red 3s infinite ease-in-out;
-}
-
-.animate-glow-cyan {
-  animation: glow-pulse-cyan 3s infinite ease-in-out;
-}
-
-.animate-glow-emerald {
-  animation: glow-pulse-emerald 3s infinite ease-in-out;
+  stroke: #52525b !important;
 }

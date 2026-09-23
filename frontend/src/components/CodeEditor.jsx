@@ -38,12 +38,12 @@ export default function CodeEditor({ code, setCode, language, codeInputMetrics, 
   const loopsCount = codeInputMetrics?.loops_count ?? 'N/A';
 
   return (
-    <div className="h-full flex-1 flex flex-col glass-panel rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xl min-h-0 bg-white/80 dark:bg-slate-950/60">
+    <div className="h-full flex-1 flex flex-col swiss-panel rounded border border-stone-300 dark:border-zinc-800 overflow-hidden shadow-xs min-h-0 bg-[#f8f6f0] dark:bg-[#18181b]">
       {/* Editor Header Bar */}
-      <div className="flex items-center justify-between px-3.5 py-2 bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 shrink-0">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-stone-200/80 dark:bg-zinc-900 border-b border-stone-300 dark:border-zinc-800 shrink-0">
         <div className="flex items-center gap-2">
-          <Code2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+          <Code2 className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+          <span className="text-xs font-mono font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
             {language === 'cpp' ? 'C++ Editor' : `${language} Editor`}
           </span>
         </div>
@@ -75,15 +75,15 @@ export default function CodeEditor({ code, setCode, language, codeInputMetrics, 
       </div>
 
       {/* Code Input Count & Metrics Status Bar */}
-      <div className="flex flex-wrap items-center justify-between px-3 py-1.5 bg-slate-100/90 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 shrink-0 text-[11px] font-mono text-slate-600 dark:text-slate-400 gap-2">
+      <div className="flex flex-wrap items-center justify-between px-3 py-1.5 bg-stone-200/80 dark:bg-zinc-900 border-t border-stone-300 dark:border-zinc-800 shrink-0 text-[11px] font-mono text-stone-600 dark:text-zinc-400 gap-2">
         <div className="flex items-center gap-3">
-          <span>Total Lines: <strong className="text-cyan-600 dark:text-cyan-400">{lineCount}</strong></span>
-          <span>Chars: <strong className="text-slate-800 dark:text-slate-200">{charCount}</strong></span>
-          <span>Active LOC: <strong className="text-emerald-600 dark:text-emerald-400">{activeLoc}</strong></span>
+          <span>Lines: <strong className="text-orange-700 dark:text-orange-400">{lineCount}</strong></span>
+          <span>Chars: <strong className="text-stone-900 dark:text-stone-100">{charCount}</strong></span>
+          <span>Active LOC: <strong className="text-emerald-700 dark:text-emerald-400">{activeLoc}</strong></span>
         </div>
         <div className="flex items-center gap-3">
-          <span>AST Nodes: <strong className="text-purple-600 dark:text-purple-400">{astNodes}</strong></span>
-          <span>Loops: <strong className="text-amber-600 dark:text-amber-400">{loopsCount}</strong></span>
+          <span>AST Nodes: <strong className="text-stone-800 dark:text-zinc-200">{astNodes}</strong></span>
+          <span>Loops: <strong className="text-orange-800 dark:text-orange-300">{loopsCount}</strong></span>
         </div>
       </div>
     </div>

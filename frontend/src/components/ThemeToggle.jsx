@@ -7,28 +7,26 @@ export default function ThemeToggle({ theme, setTheme, className = '' }) {
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className={`relative inline-flex items-center h-7 w-14 rounded-full p-1 bg-slate-200 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700/80 hover:border-slate-400 dark:hover:border-slate-600 transition-all duration-300 cursor-pointer shadow-inner focus:outline-none shrink-0 group ${className}`}
+      className={`relative inline-flex items-center h-7 w-13 rounded p-0.5 bg-stone-200 dark:bg-zinc-900 border border-stone-300 dark:border-zinc-800 hover:border-orange-600/50 dark:hover:border-orange-500/50 transition-all duration-200 cursor-pointer focus:outline-none shrink-0 ${className}`}
       title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
       aria-label="Toggle Theme"
     >
-      {/* Fixed background Sun & Moon icons */}
-      <div className="w-full flex items-center justify-between px-0.5 pointer-events-none">
-        <Sun className={`w-3.5 h-3.5 text-amber-500 transition-all duration-300 ${isDark ? 'opacity-30 scale-75' : 'opacity-100 scale-100'}`} />
-        <Moon className={`w-3.5 h-3.5 text-indigo-400 transition-all duration-300 ${isDark ? 'opacity-100 scale-100' : 'opacity-30 scale-75'}`} />
+      <div className="w-full flex items-center justify-between px-1 pointer-events-none">
+        <Sun className={`w-3 h-3 text-orange-600 transition-opacity duration-200 ${isDark ? 'opacity-30' : 'opacity-100'}`} />
+        <Moon className={`w-3 h-3 text-emerald-500 transition-opacity duration-200 ${isDark ? 'opacity-100' : 'opacity-30'}`} />
       </div>
 
-      {/* Sliding Knob with Icon */}
       <span
-        className={`absolute top-1 left-1 w-5 h-5 rounded-full shadow-md transform transition-all duration-300 ease-in-out flex items-center justify-center border border-slate-200 dark:border-slate-700 group-hover:scale-110 ${
+        className={`absolute top-0.5 left-0.5 w-6 h-6 rounded transform transition-transform duration-200 ease-in-out flex items-center justify-center border ${
           isDark
-            ? 'translate-x-7 bg-slate-950 text-cyan-400'
-            : 'translate-x-0 bg-white text-amber-500'
+            ? 'translate-x-6 bg-zinc-800 border-zinc-700 text-emerald-400'
+            : 'translate-x-0 bg-white border-stone-300 text-orange-600 shadow-xs'
         }`}
       >
         {isDark ? (
-          <Moon className="w-3 h-3 text-cyan-400 transition-transform duration-300 -rotate-12" />
+          <Moon className="w-3 h-3 text-emerald-400" />
         ) : (
-          <Sun className="w-3 h-3 text-amber-500 transition-transform duration-300 rotate-0" />
+          <Sun className="w-3 h-3 text-orange-600" />
         )}
       </span>
     </button>

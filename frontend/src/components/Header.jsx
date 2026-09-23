@@ -33,35 +33,40 @@ export default function Header({
 
   return (
     <>
-      <header className="glass-panel sticky top-0 z-50 px-5 py-2.5 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <header className="swiss-panel sticky top-0 z-50 px-4 py-2 border-b border-stone-300 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3 shrink-0 bg-[#f8f6f0] dark:bg-[#18181b]">
         {/* Brand Logo & Back to Home */}
         <div className="flex items-center gap-3">
           <div
             onClick={() => setCurrentView && setCurrentView('home')}
-            className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 cursor-pointer hover:opacity-85 transition-opacity"
             title="Return to Home Page"
           >
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-500 shadow-md shadow-cyan-500/20 text-white">
-              <Cpu className="w-5 h-5 animate-pulse" />
+            <div className="w-7 h-7 rounded bg-orange-600 dark:bg-orange-600 text-white flex items-center justify-center shadow-sm">
+              <Cpu className="w-4 h-4" />
             </div>
-            <h1 className="text-lg font-extrabold bg-gradient-to-r from-cyan-600 via-sky-600 to-purple-600 dark:from-cyan-400 dark:via-sky-400 dark:to-purple-400 bg-clip-text text-transparent tracking-tight">
-              ComplexityLens
-            </h1>
+            <div className="flex items-baseline gap-1.5">
+              <h1 className="text-base font-bold tracking-tight text-stone-900 dark:text-stone-100 font-mono">
+                ComplexityLens
+              </h1>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-orange-700 dark:text-orange-400 font-bold border border-orange-600/30 dark:border-orange-500/30 px-1 py-0.2 rounded-sm bg-orange-500/10">
+                v1.0
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Language Selector */}
-          <div className="flex bg-slate-200/80 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-300 dark:border-slate-800">
+          <div className="flex bg-stone-200/80 dark:bg-zinc-900 p-0.5 rounded border border-stone-300 dark:border-zinc-800">
             {['python', 'cpp', 'java'].map((lang) => (
               <button
                 key={lang}
                 onClick={() => setLanguage(lang)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                className={`px-2.5 py-1 rounded text-[11px] font-mono font-semibold uppercase tracking-wider transition-all duration-150 cursor-pointer ${
                   language === lang
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-orange-600 text-white shadow-xs'
+                    : 'text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-stone-100'
                 }`}
               >
                 {lang === 'cpp' ? 'C++' : lang}
@@ -69,18 +74,16 @@ export default function Header({
             ))}
           </div>
 
-
-
           {/* Dark/Light Pill Theme Toggle */}
           <ThemeToggle theme={theme} setTheme={setTheme} />
 
           {/* Export PDF Report Button */}
           <button
             onClick={onExportReport}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 active:scale-95 transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1 rounded text-xs font-mono font-medium bg-stone-200/70 dark:bg-zinc-800/80 border border-stone-300 dark:border-zinc-700 text-stone-800 dark:text-zinc-200 hover:bg-stone-300/80 dark:hover:bg-zinc-700 active:scale-98 transition-all cursor-pointer"
             title="Export Lab Audit Report"
           >
-            <FileDown className="w-3.5 h-3.5" />
+            <FileDown className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
             <span>Report</span>
           </button>
 
@@ -88,7 +91,7 @@ export default function Header({
           <button
             onClick={onAnalyze}
             disabled={isAnalyzing}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 shadow-md shadow-cyan-500/20 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-1 rounded text-xs font-mono font-bold text-white bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-500 active:scale-98 disabled:opacity-50 transition-all cursor-pointer shadow-xs"
           >
             {isAnalyzing ? (
               <>
@@ -107,29 +110,29 @@ export default function Header({
 
       {/* AI Key Settings Modal */}
       {isKeyModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel w-full max-w-md bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400">
-                <Sparkles className="w-5 h-5" />
-                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
-                  AI Engine Config
+        <div className="fixed inset-0 z-50 bg-stone-950/60 dark:bg-black/80 flex items-center justify-center p-4">
+          <div className="swiss-panel w-full max-w-md bg-[#f8f6f0] dark:bg-[#18181b] border border-stone-300 dark:border-zinc-800 rounded-md shadow-lg p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-300 dark:border-zinc-800 pb-2.5">
+              <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                <Sparkles className="w-4 h-4" />
+                <h3 className="text-xs font-mono font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
+                  AI Engine Settings
                 </h3>
               </div>
               <button
                 onClick={() => setIsKeyModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                className="p-1 rounded text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
               Configure your API Key for deep algorithm evaluation and verification.
             </p>
 
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <div className="space-y-1">
+              <label className="text-[10px] font-mono font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider">
                 API Key
               </label>
               <input
@@ -137,20 +140,20 @@ export default function Header({
                 value={tempKey}
                 onChange={(e) => setTempKey(e.target.value)}
                 placeholder="AIzaSy..."
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-1.5 rounded bg-stone-100 dark:bg-zinc-900 border border-stone-300 dark:border-zinc-800 text-xs font-mono text-stone-900 dark:text-stone-100 focus:outline-none focus:border-orange-600"
               />
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 onClick={() => setIsKeyModalOpen(false)}
-                className="px-3 py-1.5 rounded-xl text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                className="px-3 py-1 rounded text-xs font-mono text-stone-600 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-stone-100"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveKey}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 shadow-md cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1 rounded text-xs font-mono font-bold text-white bg-orange-600 hover:bg-orange-700 shadow-xs cursor-pointer"
               >
                 {savedSuccess ? <Check className="w-3.5 h-3.5 text-white" /> : <Key className="w-3.5 h-3.5" />}
                 <span>{savedSuccess ? 'Saved!' : 'Save Key'}</span>

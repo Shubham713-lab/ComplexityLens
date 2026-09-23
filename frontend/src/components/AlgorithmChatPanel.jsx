@@ -16,18 +16,18 @@ function ChatCodeBlock({ code, lang }) {
   };
 
   return (
-    <div className="my-2 rounded-xl border border-slate-700 bg-slate-900 overflow-hidden text-xs font-mono shadow-md max-w-full">
-      <div className="px-3 py-1.5 bg-slate-800/90 border-b border-slate-700 flex items-center justify-between text-[11px] text-slate-400">
-        <span className="font-semibold text-cyan-400">{lang || 'code'}</span>
+    <div className="my-2 rounded border border-zinc-800 bg-zinc-950 overflow-hidden text-xs font-mono shadow-xs max-w-full">
+      <div className="px-3 py-1 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400">
+        <span className="font-bold text-orange-400">{lang || 'code'}</span>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 text-slate-300 hover:text-white cursor-pointer"
+          className="flex items-center gap-1 text-zinc-300 hover:text-white cursor-pointer"
         >
           {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
           <span>{copied ? 'Copied' : 'Copy'}</span>
         </button>
       </div>
-      <pre className="p-3 overflow-x-auto text-slate-200 leading-relaxed max-w-full">
+      <pre className="p-3 overflow-x-auto text-zinc-200 leading-relaxed max-w-full">
         <code>{code}</code>
       </pre>
     </div>
@@ -40,7 +40,6 @@ function ChatCodeBlock({ code, lang }) {
 function FormattedInlineText({ text }) {
   if (!text) return null;
 
-  // Split by inline code `...` or math $...$
   const parts = text.split(/(`[^`]+`|\$[^\$]+\$)/g);
 
   return (
@@ -48,35 +47,32 @@ function FormattedInlineText({ text }) {
       {parts.map((part, i) => {
         if (!part) return null;
 
-        // Inline math
         if (part.startsWith('$') && part.endsWith('$')) {
           return <MathView key={i} math={part.slice(1, -1)} className="mx-1" />;
         }
 
-        // Inline code or Big-O
         if (part.startsWith('`') && part.endsWith('`')) {
           const content = part.slice(1, -1);
           if (/^(O\(|Ω\(|Θ\(|\\Omega|\\Theta|N\^|T\(N\))/i.test(content)) {
             return (
-              <span key={i} className="inline-flex items-center px-1.5 py-0.5 mx-1 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 font-mono text-xs border border-cyan-500/20">
+              <span key={i} className="inline-flex items-center px-1.5 py-0.5 mx-1 rounded bg-orange-600/10 text-orange-800 dark:text-orange-300 font-mono text-xs border border-orange-600/20">
                 <MathView math={content} />
               </span>
             );
           }
           return (
-            <code key={i} className="px-1.5 py-0.5 mx-0.5 rounded bg-slate-200 dark:bg-slate-800 text-cyan-700 dark:text-cyan-300 font-mono text-[11px] border border-slate-300 dark:border-slate-700">
+            <code key={i} className="px-1.5 py-0.5 mx-0.5 rounded bg-stone-200 dark:bg-zinc-800 text-orange-800 dark:text-orange-300 font-mono text-[11px] border border-stone-300 dark:border-zinc-700">
               {content}
             </code>
           );
         }
 
-        // Bold formatting **text**
         const subParts = part.split(/(\*\*[^*]+\*\*)/g);
         return (
           <span key={i}>
             {subParts.map((sub, j) => {
               if (sub.startsWith('**') && sub.endsWith('**')) {
-                return <strong key={j} className="font-bold text-slate-900 dark:text-slate-100">{sub.slice(2, -2)}</strong>;
+                return <strong key={j} className="font-bold text-stone-900 dark:text-stone-100">{sub.slice(2, -2)}</strong>;
               }
               return sub;
             })}
@@ -93,7 +89,6 @@ function FormattedInlineText({ text }) {
 function FormattedMessage({ text }) {
   if (!text) return null;
 
-  // Parse code blocks ```lang ... ```
   const codeBlockRegex = /```([a-zA-Z0-9_]*)\n([\s\S]*?)```/g;
   const sections = [];
   let lastIndex = 0;
@@ -128,28 +123,26 @@ function FormattedMessage({ text }) {
               const trimmed = line.trim();
               if (!trimmed) return <div key={lIdx} className="h-1" />;
 
-              // Headers ### or ####
               if (trimmed.startsWith('### ')) {
                 return (
-                  <h3 key={lIdx} className="text-sm font-bold text-cyan-600 dark:text-cyan-400 pt-1 pb-0.5 border-b border-slate-200 dark:border-slate-800">
+                  <h3 key={lIdx} className="text-sm font-mono font-bold text-orange-700 dark:text-orange-400 pt-1 pb-0.5 border-b border-stone-300 dark:border-zinc-800">
                     <FormattedInlineText text={trimmed.slice(4)} />
                   </h3>
                 );
               }
               if (trimmed.startsWith('#### ')) {
                 return (
-                  <h4 key={lIdx} className="text-xs font-bold text-slate-800 dark:text-slate-200 pt-1">
+                  <h4 key={lIdx} className="text-xs font-mono font-bold text-stone-800 dark:text-stone-200 pt-1">
                     <FormattedInlineText text={trimmed.slice(5)} />
                   </h4>
                 );
               }
 
-              // Numbered items 1. 2.
               const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
               if (numMatch) {
                 return (
                   <div key={lIdx} className="flex items-start gap-2 pl-1 my-0.5">
-                    <span className="font-mono font-bold text-cyan-600 dark:text-cyan-400 text-xs shrink-0 mt-0.5">{numMatch[1]}.</span>
+                    <span className="font-mono font-bold text-orange-700 dark:text-orange-400 text-xs shrink-0 mt-0.5">{numMatch[1]}.</span>
                     <div className="flex-1">
                       <FormattedInlineText text={numMatch[2]} />
                     </div>
@@ -157,11 +150,10 @@ function FormattedMessage({ text }) {
                 );
               }
 
-              // Bullet points - or *
               if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
                 return (
                   <div key={lIdx} className="flex items-start gap-2 pl-2 my-0.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shrink-0 mt-1.5" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-600 shrink-0 mt-1.5" />
                     <div className="flex-1">
                       <FormattedInlineText text={trimmed.slice(2)} />
                     </div>
@@ -247,18 +239,17 @@ export default function AlgorithmChatPanel({ code, language, analysis, apiKey })
       const query = text.toLowerCase();
       const codeLines = (code || '').split('\n');
 
-      // Check specific line inquiry
       const lineMatch = query.match(/\bline[s]?\s*(\d+)/);
       if (lineMatch) {
         const lineNo = parseInt(lineMatch[1], 10);
         if (lineNo > 0 && lineNo <= codeLines.length) {
           const lineText = codeLines[lineNo - 1];
-          reply = `### Line ${lineNo} Inquiry\n\n\`\`\`${language}\n${lineNo}: ${lineText}\n\`\`\`\n- **Statement:** \`${lineText.strip ? lineText.strip() : lineText.trim()}\`\n- **Impact:** Contributes to the overall **${timeO}** time complexity and state execution logic.`;
+          reply = `### Line ${lineNo} Inquiry\n\n\`\`\`${language}\n${lineNo}: ${lineText}\n\`\`\`\n- **Statement:** \`${lineText.trim()}\`\n- **Impact:** Contributes to overall **${timeO}** time complexity.`;
         } else {
           reply = `Line ${lineNo} is out of bounds for the current code snippet (${codeLines.length} lines total).`;
         }
       } else if (query.includes("explain") || query.includes("breakdown") || query.includes("walkthrough")) {
-        reply = `### Code Walkthrough (${language.toUpperCase()})\n\n**Time Complexity:** **${timeO}** | **Space Complexity:** **${spaceO}**\n\n1. **Initialization:** The function computes setup state and initial array bounds in $O(1)$ constant time.\n2. **Iteration Pass:** Control loops iterate over input dataset size $N$, multiplying step counts per iteration level.\n3. **Overall Bound:** The worst-case runtime scales as **${timeO}** (Step Formula: \`${formulaStr}\`).`;
+        reply = `### Code Walkthrough (${language.toUpperCase()})\n\n**Time Complexity:** **${timeO}** | **Space Complexity:** **${spaceO}**\n\n1. **Initialization:** Computes setup state and initial array bounds in $O(1)$ constant time.\n2. **Iteration Pass:** Control loops iterate over input dataset size $N$, multiplying step counts per iteration level.\n3. **Overall Bound:** The worst-case runtime scales as **${timeO}** (Step Formula: \`${formulaStr}\`).`;
       } else if (query.includes("time") || query.includes("big-o") || query.includes("slow") || query.includes("complexity")) {
         reply = `### Time Complexity: **${timeO}**\n\nGoverned by operation formula \`${formulaStr}\`. Loop nesting levels dictate how execution steps scale as input size $N$ grows.`;
       } else if (query.includes("space") || query.includes("memory") || query.includes("ram")) {
@@ -288,18 +279,18 @@ export default function AlgorithmChatPanel({ code, language, analysis, apiKey })
   ];
 
   return (
-    <div className="glass-panel h-full flex-1 rounded-xl border border-slate-200 dark:border-slate-800 p-4 flex flex-col overflow-hidden shadow-xl bg-white/80 dark:bg-slate-950/70 backdrop-blur-md min-h-0">
+    <div className="swiss-panel h-full flex-1 rounded border border-stone-300 dark:border-zinc-800 p-4 flex flex-col overflow-hidden shadow-xs bg-[#f8f6f0] dark:bg-[#18181b] min-h-0 font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
+      <div className="flex items-center justify-between border-b border-stone-300 dark:border-zinc-800 pb-3 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+          <div className="p-1.5 rounded bg-orange-600/10 text-orange-600 dark:text-orange-400 border border-orange-600/20">
             <MessageSquareCode className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+            <h3 className="text-xs font-mono font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
               Algorithm Chatbot
             </h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+            <p className="text-[11px] text-stone-600 dark:text-zinc-400 font-mono">
               Context: {language.toUpperCase()} • {timeO} • {spaceO}
             </p>
           </div>
@@ -310,7 +301,7 @@ export default function AlgorithmChatPanel({ code, language, analysis, apiKey })
             role: 'assistant',
             content: `Chat cleared. Ask me any question about your ${language.toUpperCase()} code!`
           }])}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+          className="p-1 rounded text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer"
           title="Clear Chat History"
         >
           <Trash2 className="w-4 h-4" />
@@ -318,45 +309,45 @@ export default function AlgorithmChatPanel({ code, language, analysis, apiKey })
       </div>
 
       {/* Quick Prompt Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 shrink-0 border-b border-slate-100 dark:border-slate-800/60">
-        <Sparkles className="w-3.5 h-3.5 text-cyan-500 shrink-0 ml-1" />
+      <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 shrink-0 border-b border-stone-300/60 dark:border-zinc-800/60 font-mono">
+        <Sparkles className="w-3.5 h-3.5 text-orange-600 shrink-0 ml-1" />
         {PROMPT_CHIPS.map((chip, idx) => (
           <button
             key={idx}
             onClick={() => handleSendMessage(chip)}
-            className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/40 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all whitespace-nowrap cursor-pointer shrink-0"
+            className="px-2.5 py-1 rounded text-[11px] font-medium bg-stone-200/80 dark:bg-zinc-900 text-stone-800 dark:text-zinc-200 border border-stone-300 dark:border-zinc-800 hover:border-orange-600/50 hover:text-orange-700 dark:hover:text-orange-400 transition-all whitespace-nowrap cursor-pointer shrink-0"
           >
             {chip}
           </button>
         ))}
       </div>
 
-      {/* Messages Feed - Strictly Container-bound Scrolling */}
-      <div ref={messagesFeedRef} className="flex-1 min-h-0 overflow-y-auto py-4 space-y-4 pr-1">
+      {/* Messages Feed */}
+      <div ref={messagesFeedRef} className="flex-1 min-h-0 overflow-y-auto py-3 space-y-3 pr-1">
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`flex items-start gap-3 ${
+            className={`flex items-start gap-2.5 ${
               msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'
             }`}
           >
             {/* Avatar */}
             <div
-              className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold ${
+              className={`w-6 h-6 rounded flex items-center justify-center shrink-0 text-xs font-mono font-bold ${
                 msg.role === 'user'
-                  ? 'bg-cyan-600 text-white shadow-sm'
-                  : 'bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-sm'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-emerald-700 text-white'
               }`}
             >
-              {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+              {msg.role === 'user' ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
             </div>
 
             {/* Bubble */}
             <div
-              className={`max-w-[85%] p-3.5 rounded-2xl shadow-sm break-words overflow-hidden ${
+              className={`max-w-[85%] p-3 rounded border shadow-xs break-words overflow-hidden ${
                 msg.role === 'user'
-                  ? 'bg-cyan-600 text-white rounded-tr-none text-xs sm:text-sm leading-relaxed'
-                  : 'bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-tl-none'
+                  ? 'bg-orange-600 text-white border-orange-700 text-xs sm:text-sm leading-relaxed'
+                  : 'bg-stone-200/60 dark:bg-zinc-900 text-stone-900 dark:text-stone-100 border-stone-300 dark:border-zinc-800'
               }`}
             >
               {msg.role === 'user' ? (
@@ -369,17 +360,17 @@ export default function AlgorithmChatPanel({ code, language, analysis, apiKey })
         ))}
 
         {isTyping && (
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center shrink-0">
-              <Bot className="w-4 h-4 animate-pulse" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded bg-emerald-700 text-white flex items-center justify-center shrink-0">
+              <Bot className="w-3.5 h-3.5 animate-pulse" />
             </div>
-            <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+            <div className="p-3 rounded bg-stone-200/60 dark:bg-zinc-900 border border-stone-300 dark:border-zinc-800 text-xs text-stone-600 dark:text-zinc-400 flex items-center gap-2 font-mono">
               <span className="flex gap-1 items-center">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-bounce" style={{ animationDelay: '300ms' }} />
               </span>
-              <span className="ml-1 font-mono text-[11px]">Assistant is generating response...</span>
+              <span className="ml-1 text-[11px]">Assistant generating response...</span>
             </div>
           </div>
         )}
@@ -391,19 +382,19 @@ export default function AlgorithmChatPanel({ code, language, analysis, apiKey })
           e.preventDefault();
           handleSendMessage();
         }}
-        className="pt-2.5 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 shrink-0"
+        className="pt-2.5 border-t border-stone-300 dark:border-zinc-800 flex items-center gap-2 shrink-0 font-mono"
       >
         <input
           type="text"
           value={inputMsg}
           onChange={(e) => setInputMsg(e.target.value)}
           placeholder={`Ask a question about your ${language.toUpperCase()} algorithm...`}
-          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition-colors"
+          className="flex-1 px-3 py-2 rounded bg-stone-100 dark:bg-zinc-900 border border-stone-300 dark:border-zinc-800 text-xs text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:border-orange-600 transition-colors"
         />
         <button
           type="submit"
           disabled={!inputMsg.trim() || isTyping}
-          className="px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer shrink-0"
+          className="px-3 py-2 rounded bg-orange-600 hover:bg-orange-700 disabled:opacity-40 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition-all cursor-pointer shrink-0"
         >
           <span>Send</span>
           <Send className="w-3.5 h-3.5" />

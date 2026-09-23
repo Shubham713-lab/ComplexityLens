@@ -90,7 +90,7 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
   const activeEx = SANDBOX_EXAMPLES[selectedExample];
 
   return (
-    <div className="w-full bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 font-sans selection:bg-cyan-500 selection:text-white transition-colors duration-200">
+    <div className="w-full bg-[#fbf9f5] dark:bg-[#0f0f11] text-stone-900 dark:text-stone-100 font-sans transition-colors duration-150">
       {/* Home Page Top Navbar */}
       <HomeNavbar
         onLaunchAnalyzer={onLaunchAnalyzer}
@@ -98,27 +98,33 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
         setTheme={setTheme}
       />
 
-      <div className="w-full space-y-16 py-8 pb-8">
+      <div className="w-full space-y-16 py-8 pb-12">
         {/* HERO SECTION */}
         <section className="relative px-6 pt-6 md:pt-10 max-w-6xl mx-auto flex flex-col items-center text-center space-y-6">
+          {/* Technical Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-stone-200/80 dark:bg-zinc-900 border border-stone-300 dark:border-zinc-800 text-[11px] font-mono font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-400">
+            <span className="w-2 h-2 rounded-full bg-orange-600 inline-block" />
+            <span>Algorithmic & Asymptotic Inspection Suite</span>
+          </div>
+
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight max-w-4xl leading-[1.15] text-slate-900 dark:text-slate-100">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold font-sans tracking-tight max-w-4xl leading-[1.15] text-stone-900 dark:text-stone-100">
             Calculate Code Complexity & Step Formulas{' '}
-            <span className="text-cyan-600 dark:text-cyan-400">
+            <span className="text-orange-600 dark:text-orange-500">
               with AST Precision.
             </span>
           </h1>
 
           {/* Subtitle */}
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
-            Evaluate Big-O asymptotic bounds, step equations <MathView math="T(N)" />, line execution heatmaps, and empirical microsecond timing curves for Python, C++, and Java algorithms.
+          <p className="max-w-2xl mx-auto text-sm sm:text-base text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
+            Evaluate Big-O asymptotic bounds, step equations <MathView math="T(N)" />, line execution costs, and empirical microsecond timing curves for Python, C++, and Java algorithms.
           </p>
 
           {/* Hero Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-1">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <button
               onClick={onLaunchAnalyzer}
-              className="flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm font-semibold text-white bg-cyan-600 hover:bg-cyan-500 shadow-md hover:shadow-lg transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded text-xs font-mono font-bold text-white bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-500 shadow-xs transition-all cursor-pointer"
             >
               <Terminal className="w-4 h-4" />
               <span>Launch Analyzer Workspace</span>
@@ -126,35 +132,35 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
             </button>
             <a
               href="#playground"
-              className="flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded text-xs font-mono font-semibold text-stone-800 dark:text-zinc-200 bg-[#f8f6f0] dark:bg-[#18181b] border border-stone-300 dark:border-zinc-800 hover:border-stone-400 dark:hover:border-zinc-700 transition-all cursor-pointer"
             >
-              <span>Explore Interactive Playground</span>
+              <span>Explore Interactive Sandbox</span>
             </a>
           </div>
 
           {/* HERO INTERACTIVE SHOWCASE PREVIEW */}
           <div id="playground" className="w-full max-w-5xl pt-4 scroll-mt-24">
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl overflow-hidden text-left">
+            <div className="rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] shadow-sm overflow-hidden text-left">
               {/* Mockup Header */}
-              <div className="px-4 py-3 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div className="px-4 py-2.5 bg-stone-200/80 dark:bg-zinc-900 border-b border-stone-300 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-700" />
-                  <div className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-700" />
-                  <div className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-700" />
-                  <span className="font-mono text-xs font-semibold text-slate-600 dark:text-slate-400 ml-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-stone-400 dark:bg-zinc-700" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-stone-400 dark:bg-zinc-700" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-stone-400 dark:bg-zinc-700" />
+                  <span className="font-mono text-xs font-bold text-stone-700 dark:text-zinc-300 ml-2">
                     Algorithm Inspector Sandbox
                   </span>
                 </div>
                 {/* Algorithm Switcher Tabs */}
-                <div className="flex items-center gap-1.5 overflow-x-auto">
+                <div className="flex items-center gap-1 overflow-x-auto">
                   {SANDBOX_EXAMPLES.map((ex, idx) => (
                     <button
                       key={ex.id}
                       onClick={() => setSelectedExample(idx)}
-                      className={`px-3 py-1 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer ${
+                      className={`px-2.5 py-1 rounded text-xs font-mono font-semibold transition-all cursor-pointer ${
                         selectedExample === idx
-                          ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
+                          ? 'bg-orange-600 text-white shadow-xs'
+                          : 'text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-stone-100'
                       }`}
                     >
                       {ex.title}
@@ -164,57 +170,57 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
               </div>
 
               {/* Code & Metrics Split Body */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-5 items-stretch">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 items-stretch">
                 {/* Code View */}
-                <div className="md:col-span-7 flex flex-col justify-between p-4 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2 text-[11px] text-slate-400">
-                    <span className="font-semibold text-cyan-400">{activeEx.title}</span>
+                <div className="md:col-span-7 flex flex-col justify-between p-3.5 rounded bg-zinc-900 text-zinc-100 font-mono text-xs space-y-3 border border-zinc-800">
+                  <div className="flex items-center justify-between border-b border-zinc-800 pb-2 text-[11px] text-zinc-400">
+                    <span className="font-bold text-orange-400">{activeEx.title}</span>
                     <span>{activeEx.lang}</span>
                   </div>
-                  <pre className="leading-relaxed text-slate-300 overflow-x-auto my-2">
+                  <pre className="leading-relaxed text-zinc-200 overflow-x-auto my-1">
                     <code>{activeEx.code}</code>
                   </pre>
-                  <div className="text-[10px] text-slate-500 border-t border-slate-800 pt-2 flex items-center gap-1.5">
-                    <Zap className="w-3 h-3 text-amber-400" />
+                  <div className="text-[10px] text-zinc-400 border-t border-zinc-800 pt-2 flex items-center gap-1.5 font-mono">
+                    <Zap className="w-3 h-3 text-orange-400" />
                     <span>AST Parsed in 0.08s</span>
                   </div>
                 </div>
 
                 {/* Live Complexity Cards Preview */}
                 <div className="md:col-span-5 flex flex-col justify-between space-y-3">
-                  <div className="grid grid-cols-2 gap-3 flex-1">
-                    <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-center">
-                      <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                  <div className="grid grid-cols-2 gap-2.5 flex-1">
+                    <div className="p-3.5 rounded bg-[#f3efe6] dark:bg-zinc-900/90 border border-stone-300 dark:border-zinc-800 flex flex-col justify-center">
+                      <span className="text-[10px] uppercase font-mono font-bold text-stone-500 dark:text-zinc-400">
                         Time Complexity
                       </span>
-                      <div className="text-2xl font-black font-mono text-rose-600 dark:text-rose-400 mt-1">
+                      <div className="text-xl font-bold font-mono text-orange-700 dark:text-orange-400 mt-1">
                         <MathView math={activeEx.complexity} />
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-center">
-                      <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                    <div className="p-3.5 rounded bg-[#f3efe6] dark:bg-zinc-900/90 border border-stone-300 dark:border-zinc-800 flex flex-col justify-center">
+                      <span className="text-[10px] uppercase font-mono font-bold text-stone-500 dark:text-zinc-400">
                         Space Complexity
                       </span>
-                      <div className="text-2xl font-black font-mono text-purple-600 dark:text-purple-400 mt-1">
+                      <div className="text-xl font-bold font-mono text-emerald-700 dark:text-emerald-400 mt-1">
                         <MathView math={activeEx.space} />
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-center">
-                      <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                    <div className="p-3.5 rounded bg-[#f3efe6] dark:bg-zinc-900/90 border border-stone-300 dark:border-zinc-800 flex flex-col justify-center">
+                      <span className="text-[10px] uppercase font-mono font-bold text-stone-500 dark:text-zinc-400">
                         Step Formula
                       </span>
-                      <div className="text-base font-bold font-mono text-cyan-600 dark:text-cyan-300 mt-1 truncate">
+                      <div className="text-xs font-bold font-mono text-stone-800 dark:text-zinc-200 mt-1 truncate">
                         <MathView math={activeEx.formula} />
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-center">
-                      <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                    <div className="p-3.5 rounded bg-[#f3efe6] dark:bg-zinc-900/90 border border-stone-300 dark:border-zinc-800 flex flex-col justify-center">
+                      <span className="text-[10px] uppercase font-mono font-bold text-stone-500 dark:text-zinc-400">
                         Dominant Term
                       </span>
-                      <div className="text-xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">
+                      <div className="text-lg font-bold font-mono text-orange-800 dark:text-orange-300 mt-1">
                         <MathView math={activeEx.dominant} />
                       </div>
                     </div>
@@ -222,7 +228,7 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
 
                   <button
                     onClick={onLaunchAnalyzer}
-                    className="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-colors"
+                    className="w-full py-2.5 rounded bg-orange-600 hover:bg-orange-700 text-white font-mono font-bold text-xs flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-colors"
                   >
                     <span>Open in Inspector Workspace</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -234,65 +240,65 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
         </section>
 
         {/* CORE CAPABILITIES GRID */}
-        <section id="features" className="px-6 max-w-6xl mx-auto w-full space-y-8 scroll-mt-24">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+        <section id="features" className="px-6 max-w-6xl mx-auto w-full space-y-6 scroll-mt-24">
+          <div className="text-center space-y-1.5">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100 font-mono">
               Built for Algorithmic Analysis
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
+            <p className="text-xs text-stone-600 dark:text-zinc-400 max-w-xl mx-auto font-sans">
               Everything you need to audit, compare, and optimize software execution efficiency.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Feature 1 */}
-            <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
-              <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 w-fit border border-cyan-500/20">
-                <Calculator className="w-5 h-5" />
+            <div className="p-5 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] space-y-2.5 shadow-xs">
+              <div className="p-2 rounded bg-orange-600/10 text-orange-700 dark:text-orange-400 w-fit border border-orange-600/20">
+                <Calculator className="w-4 h-4" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 font-mono">
                 AST & Symbolic Math Engine
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
                 Derives mathematical step equations <MathView math="T(N)" /> using AST structural parsing and SymPy symbolic summation bounds for single and multi-variable loops.
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
-              <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 w-fit border border-purple-500/20">
-                <ListTree className="w-5 h-5" />
+            <div className="p-5 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] space-y-2.5 shadow-xs">
+              <div className="p-2 rounded bg-emerald-600/10 text-emerald-700 dark:text-emerald-400 w-fit border border-emerald-600/20">
+                <ListTree className="w-4 h-4" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 font-mono">
                 Line-by-Line Cost Heatmap
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
                 Highlights execution frequency directly on source code lines in Monaco Editor to pinpoint nested iterations and non-trivial hidden operations like <code className="font-mono">arr.pop(0)</code> or <code className="font-mono">item in list</code>.
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
-              <div className="p-2.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 w-fit border border-sky-500/20">
-                <TrendingUp className="w-5 h-5" />
+            <div className="p-5 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] space-y-2.5 shadow-xs">
+              <div className="p-2 rounded bg-orange-600/10 text-orange-700 dark:text-orange-400 w-fit border border-orange-600/20">
+                <TrendingUp className="w-4 h-4" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 font-mono">
                 Empirical Execution Benchmarks
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
                 Executes microsecond timings across scaled input sizes ($N=10$ to $N=10,000$) and plots empirical curves against theoretical growth functions ($O(N)$, $O(N^2)$).
               </p>
             </div>
 
             {/* Feature 4 */}
-            <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
-              <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 w-fit border border-amber-500/20">
-                <Network className="w-5 h-5" />
+            <div className="p-5 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] space-y-2.5 shadow-xs">
+              <div className="p-2 rounded bg-emerald-600/10 text-emerald-700 dark:text-emerald-400 w-fit border border-emerald-600/20">
+                <Network className="w-4 h-4" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 font-mono">
                 AST Control Flow Graph
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
                 Visualizes control flow paths, loop entry nodes, recursive branches, and conditional decisions with interactive React Flow node exploration.
               </p>
             </div>
@@ -300,43 +306,43 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
         </section>
 
         {/* SUPPORTED LANGUAGES */}
-        <section id="languages" className="px-6 max-w-5xl mx-auto w-full space-y-8 scroll-mt-24">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+        <section id="languages" className="px-6 max-w-5xl mx-auto w-full space-y-6 scroll-mt-24">
+          <div className="text-center space-y-1">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100 font-mono">
               Supported Programming Languages
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
+            <p className="text-xs text-stone-600 dark:text-zinc-400 max-w-xl mx-auto font-sans">
               Multi-language static code analysis with dedicated parsing pipelines.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-3 text-center">
-              <span className="px-3 py-1 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 font-bold font-mono text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-5 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] space-y-2.5 text-center">
+              <span className="px-2.5 py-0.5 rounded bg-orange-600/10 text-orange-700 dark:text-orange-400 border border-orange-600/20 font-bold font-mono text-[11px]">
                 PYTHON 3
               </span>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">AST & Subprocess Engine</h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <h4 className="text-xs font-bold font-mono text-stone-900 dark:text-stone-100">AST & Subprocess Engine</h4>
+              <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
                 Full AST node visitor parsing, SymPy loop summation, matrix space detection, and isolated subprocess micro-benchmarking.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-3 text-center">
-              <span className="px-3 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-bold font-mono text-xs">
+            <div className="p-5 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] space-y-2.5 text-center">
+              <span className="px-2.5 py-0.5 rounded bg-emerald-600/10 text-emerald-700 dark:text-emerald-400 border border-emerald-600/20 font-bold font-mono text-[11px]">
                 C++ (CPP)
               </span>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Loop & Vector Inspection</h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <h4 className="text-xs font-bold font-mono text-stone-900 dark:text-stone-100">Loop & Vector Inspection</h4>
+              <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
                 Parses C++ functions, nested <code className="font-mono">for</code> / <code className="font-mono">while</code> loops, boundary variables, and <code className="font-mono">std::vector</code> operations.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-3 text-center">
-              <span className="px-3 py-1 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 font-bold font-mono text-xs">
+            <div className="p-5 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] space-y-2.5 text-center">
+              <span className="px-2.5 py-0.5 rounded bg-orange-600/10 text-orange-700 dark:text-orange-400 border border-orange-600/20 font-bold font-mono text-[11px]">
                 JAVA
               </span>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Method & Array Analysis</h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <h4 className="text-xs font-bold font-mono text-stone-900 dark:text-stone-100">Method & Array Analysis</h4>
+              <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
                 Evaluates Java methods, array iterations, nested loops, conditional branches, and scalar allocation patterns.
               </p>
             </div>
@@ -344,43 +350,43 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
         </section>
 
         {/* WORKFLOW PIPELINE */}
-        <section id="workflow" className="px-6 max-w-5xl mx-auto w-full space-y-8 scroll-mt-24">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+        <section id="workflow" className="px-6 max-w-5xl mx-auto w-full space-y-6 scroll-mt-24">
+          <div className="text-center space-y-1">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100 font-mono">
               Analysis Workflow
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
+            <p className="text-xs text-stone-600 dark:text-zinc-400 max-w-xl mx-auto font-sans">
               Three simple steps to evaluate your algorithm's efficiency.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-3 text-center">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-mono font-bold flex items-center justify-center mx-auto text-sm border border-slate-300 dark:border-slate-700">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-5 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] space-y-2.5 text-center">
+              <div className="w-8 h-8 rounded bg-stone-200 dark:bg-zinc-800 text-stone-900 dark:text-stone-100 font-mono font-bold flex items-center justify-center mx-auto text-xs border border-stone-300 dark:border-zinc-700">
                 01
               </div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Paste or Load Code</h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <h4 className="text-xs font-bold font-mono text-stone-900 dark:text-stone-100">Paste or Load Code</h4>
+              <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
                 Write your code in Monaco Editor or load algorithm presets like Two Sum, Bubble Sort, or Merge Sort.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-3 text-center">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-mono font-bold flex items-center justify-center mx-auto text-sm border border-slate-300 dark:border-slate-700">
+            <div className="p-5 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] space-y-2.5 text-center">
+              <div className="w-8 h-8 rounded bg-stone-200 dark:bg-zinc-800 text-stone-900 dark:text-stone-100 font-mono font-bold flex items-center justify-center mx-auto text-xs border border-stone-300 dark:border-zinc-700">
                 02
               </div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">AST Analysis Engine</h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <h4 className="text-xs font-bold font-mono text-stone-900 dark:text-stone-100">AST Analysis Engine</h4>
+              <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
                 The engine evaluates loops, solves closed-form summation math equations, and runs microsecond benchmarks.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-3 text-center">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-mono font-bold flex items-center justify-center mx-auto text-sm border border-slate-300 dark:border-slate-700">
+            <div className="p-5 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] space-y-2.5 text-center">
+              <div className="w-8 h-8 rounded bg-stone-200 dark:bg-zinc-800 text-stone-900 dark:text-stone-100 font-mono font-bold flex items-center justify-center mx-auto text-xs border border-stone-300 dark:border-zinc-700">
                 03
               </div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Inspect & Export</h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <h4 className="text-xs font-bold font-mono text-stone-900 dark:text-stone-100">Inspect & Export</h4>
+              <p className="text-xs text-stone-600 dark:text-zinc-400 leading-relaxed font-sans">
                 Review asymptotic cards, heatmaps, growth curves, AI breakdown, and generate printable PDF lab reports.
               </p>
             </div>
@@ -389,18 +395,18 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
 
         {/* BOTTOM CTA BANNER */}
         <section className="px-6 max-w-4xl mx-auto w-full">
-          <div className="p-8 md:p-10 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center space-y-5 shadow-xl">
-            <div className="space-y-2">
-              <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">
+          <div className="p-8 rounded border border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] text-center space-y-4 shadow-xs">
+            <div className="space-y-1">
+              <h3 className="text-xl sm:text-2xl font-bold font-mono text-stone-900 dark:text-stone-100">
                 Ready to inspect your code's complexity?
               </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg mx-auto">
+              <p className="text-xs text-stone-600 dark:text-zinc-400 max-w-lg mx-auto font-sans">
                 Launch the analyzer workspace now to inspect Big-O bounds and operation step formulas.
               </p>
             </div>
             <button
               onClick={onLaunchAnalyzer}
-              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-sm font-semibold text-white bg-cyan-600 hover:bg-cyan-500 shadow-md transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded text-xs font-mono font-bold text-white bg-orange-600 hover:bg-orange-700 shadow-xs transition-all cursor-pointer"
             >
               <Terminal className="w-4 h-4" />
               <span>Launch Workspace</span>
@@ -410,8 +416,8 @@ export default function HomePage({ onLaunchAnalyzer, theme, setTheme }) {
         </section>
 
         {/* FOOTER */}
-        <footer className="px-6 pt-4 text-center text-xs font-mono text-slate-500 dark:text-slate-400 border-t border-slate-200/60 dark:border-slate-800/60 max-w-6xl mx-auto">
-          <p>ComplexityLens — Real-time Algorithmic & Asymptotic Complexity Inspector</p>
+        <footer className="px-6 pt-4 text-center text-[11px] font-mono text-stone-500 dark:text-zinc-500 border-t border-stone-300/60 dark:border-zinc-800/60 max-w-6xl mx-auto">
+          <p>ComplexityLens — Real-Time Algorithmic & Asymptotic Complexity Inspector</p>
         </footer>
       </div>
     </div>

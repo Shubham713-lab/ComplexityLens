@@ -16,45 +16,50 @@ export default function HomeNavbar({ onLaunchAnalyzer, theme, setTheme }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 px-6 py-3 border-b border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-[#0b0f19]/85 backdrop-blur-md transition-colors duration-200">
+    <header className="sticky top-0 z-50 px-6 py-2.5 border-b border-stone-300 dark:border-zinc-800 bg-[#f8f6f0] dark:bg-[#18181b] transition-colors duration-150">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        {/* Brand Logo & Name - Identical to Workspace Header */}
+        {/* Brand Logo & Name */}
         <div
-          className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity"
+          className="flex items-center gap-2 cursor-pointer hover:opacity-85 transition-opacity"
           onClick={scrollToTop}
           title="ComplexityLens Home"
         >
-          <div className="p-2 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-500 shadow-md shadow-cyan-500/20 text-white">
-            <Cpu className="w-5 h-5 animate-pulse" />
+          <div className="w-7 h-7 rounded bg-orange-600 text-white flex items-center justify-center shadow-xs">
+            <Cpu className="w-4 h-4" />
           </div>
-          <h1 className="text-lg font-extrabold bg-gradient-to-r from-cyan-600 via-sky-600 to-purple-600 dark:from-cyan-400 dark:via-sky-400 dark:to-purple-400 bg-clip-text text-transparent tracking-tight">
-            ComplexityLens
-          </h1>
+          <div className="flex items-baseline gap-1.5">
+            <h1 className="text-base font-bold tracking-tight text-stone-900 dark:text-stone-100 font-mono">
+              ComplexityLens
+            </h1>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-stone-600 dark:text-zinc-400 font-semibold border border-stone-300 dark:border-zinc-700 px-1 py-0.2 rounded">
+              Engineering Suite
+            </span>
+          </div>
         </div>
 
         {/* Center Nav Links */}
-        <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-slate-600 dark:text-slate-400">
+        <nav className="hidden md:flex items-center gap-6 text-xs font-mono font-medium text-stone-600 dark:text-zinc-400">
           <button
             onClick={() => scrollToSection('playground')}
-            className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer"
+            className="hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer"
           >
             Playground
           </button>
           <button
             onClick={() => scrollToSection('features')}
-            className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer"
+            className="hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer"
           >
             Capabilities
           </button>
           <button
             onClick={() => scrollToSection('languages')}
-            className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer"
+            className="hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer"
           >
             Languages
           </button>
           <button
             onClick={() => scrollToSection('workflow')}
-            className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer"
+            className="hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer"
           >
             Workflow
           </button>
@@ -62,13 +67,12 @@ export default function HomeNavbar({ onLaunchAnalyzer, theme, setTheme }) {
 
         {/* Right Controls */}
         <div className="flex items-center gap-3">
-          {/* Custom Unique Pill Theme Switcher */}
           <ThemeToggle theme={theme} setTheme={setTheme} />
 
           {/* Launch Workspace CTA */}
           <button
             onClick={onLaunchAnalyzer}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 shadow-sm hover:shadow transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded text-xs font-mono font-bold text-white bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-500 shadow-xs transition-all cursor-pointer"
           >
             <span>Launch Workspace</span>
             <ArrowRight className="w-3.5 h-3.5" />
