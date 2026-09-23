@@ -606,43 +606,79 @@ CRITICAL INSTRUCTIONS:
         res.append(f"\n*This refactored approach eliminates unnecessary iterations to optimize runtime latency.*")
         return "\n".join(res)
 
-    # 4. Time Complexity / Big-O Derivation Request
-    if any(k in query_lower for k in ["time complexity", "time", "big-o", "big o", "why o(", "slow", "growth", "formula"]):
-        loops = [line for line in code_lines if "for " in line or "while " in line]
-        res = [
-            f"### Time Complexity Derivation: **{time_o}**",
-            f"The worst-case execution time scales as **{time_o}** with step operation formula `{formula}`.\n",
-            "**Mathematical Explanation:**"
-        ]
-        if len(loops) >= 2:
-            res.append(f"- Your code contains **{len(loops)} nested loops** (`{loops[0].strip()}` and `{loops[1].strip()}`).")
-            res.append(f"- For an input size of $N$, the outer loop runs $N$ times, and for each iteration, the inner loop runs $N$ times.")
-            res.append(f"- Total Operations: $\\sum_{{i=1}}^{{N}} N = N \\times N = N^2$, yielding worst-case **{time_o}**.")
-        elif len(loops) == 1:
-            res.append(f"- The single control loop (`{loops[0].strip()}`) iterates through the input dataset of length $N$.")
-            res.append(f"- Each element is processed in $O(1)$ constant work per iteration, yielding linear **{time_o}** scaling.")
+    # 4. Definition & Meaning of Concepts Queries (e.g. "what is edge case", "meaning of edge case", "define time complexity")
+    is_definition_query = any(w in query_lower for w in ["what is", "meaning of", "define", "what does", "definition of", "what are"])
+
+    if "edge case" in query_lower or "edge-case" in query_lower or "edge" in query_lower:
+        if is_definition_query or "meaning" in query_lower or "definition" in query_lower:
+            return (
+                f"### What is an Edge Case? (Definition & Meaning)\n\n"
+                f"An **Edge Case** (or boundary condition) is a problem or situation that occurs at the extreme operating limits of an algorithm—such as empty input arrays, maximum integer values, or unexpected data structures.\n\n"
+                f"#### Why Edge Cases Matter:\n"
+                f"- **Prevents Runtime Crashes:** Catches unexpected null pointers, index out of bounds, or division by zero.\n"
+                f"- **Ensures Correctness:** Verifies logic works when input size $N=0$ or $N=1$.\n\n"
+                f"#### Edge Cases in Your {language.upper()} Code:\n"
+                f"1. **Empty Input ($N=0$):** Check if loop headers evaluate safely without crashing.\n"
+                f"2. **Single Element ($N=1$):** Check if logic handles 1 element without out-of-bound errors.\n"
+                f"3. **Duplicates / Extremes:** Test for duplicate values or maximum integer limits."
+            )
         else:
-            res.append(f"- The code consists of sequential operations without scaling loops, executing in constant **{time_o}** time.")
-        return "\n".join(res)
+            return (
+                f"### Critical Edge Cases to Test ({language.upper()})\n\n"
+                f"1. **Empty / Null Input:** Dataset with $N=0$ elements (ensure no index out of bounds or null reference exception).\n"
+                f"2. **Single Element Input:** Dataset with $N=1$ element (verify loop termination and return value).\n"
+                f"3. **All Identical Elements:** E.g. `[5, 5, 5, 5]` (check for infinite loops or duplicate key collisions).\n"
+                f"4. **Extreme Boundaries:** Maximum integer limits ($N > 100,000$) to evaluate space overflow and execution timeouts."
+            )
 
-    # 5. Space Complexity Inquiry
-    if any(k in query_lower for k in ["space", "memory", "stack", "auxiliary", "ram", "allocation"]):
-        return (
-            f"### Auxiliary Space Complexity: **{space_o}**\n\n"
-            f"- **State Memory:** Measures additional variables, arrays, sets, maps, or data structures allocated during runtime.\n"
-            f"- **Stack Frame Depth:** Measures maximum recursion stack depth or call stack frames.\n"
-            f"- For this {language.upper()} implementation, space allocation scales as **{space_o}**."
-        )
+    if "big-o" in query_lower or "big o" in query_lower or "time complexity" in query_lower:
+        if is_definition_query or "meaning" in query_lower or "definition" in query_lower:
+            return (
+                f"### What is Time Complexity & Big-O Notation?\n\n"
+                f"**Time Complexity** quantifies the amount of time or computational steps an algorithm takes to execute as the input dataset size $N$ grows.\n\n"
+                f"**Big-O Notation ($O$)** defines the **worst-case upper bound** on runtime performance.\n\n"
+                f"#### Applied to Your Code ({language.upper()}):\n"
+                f"- Worst-case bound: **{time_o}**\n"
+                f"- Operation Step Formula: `{formula}`\n"
+                f"- Scaling behavior: As input $N$ increases, operations grow according to **{time_o}**."
+            )
+        else:
+            loops = [line for line in code_lines if "for " in line or "while " in line]
+            res = [
+                f"### Time Complexity Derivation: **{time_o}**",
+                f"The worst-case execution time scales as **{time_o}** with step operation formula `{formula}`.\n",
+                "**Mathematical Explanation:**"
+            ]
+            if len(loops) >= 2:
+                res.append(f"- Your code contains **{len(loops)} nested loops** (`{loops[0].strip()}` and `{loops[1].strip()}`).")
+                res.append(f"- For input size $N$, outer loop runs $N$ times and inner loop runs $N$ times.")
+                res.append(f"- Total Operations: $\\sum_{{i=1}}^{{N}} N = N \\times N = N^2$, yielding worst-case **{time_o}**.")
+            elif len(loops) == 1:
+                res.append(f"- The single control loop (`{loops[0].strip()}`) iterates through input dataset $N$.")
+                res.append(f"- Each element is processed in $O(1)$ constant work per iteration, yielding linear **{time_o}** scaling.")
+            else:
+                res.append(f"- The code executes sequential operations in constant **{time_o}** time.")
+            return "\n".join(res)
 
-    # 6. Edge Cases Inquiry
-    if any(k in query_lower for k in ["edge case", "edge", "corner", "test", "boundary", "fail", "bug"]):
-        return (
-            f"### Critical Edge Cases to Test ({language.upper()})\n\n"
-            f"1. **Empty / Null Input:** Dataset with $N=0$ elements (ensure no index out of bounds or null reference exception).\n"
-            f"2. **Single Element Input:** Dataset with $N=1$ element (verify loop termination and return value).\n"
-            f"3. **All Identical Elements:** E.g. `[5, 5, 5, 5]` (check for infinite loops or duplicate key collisions).\n"
-            f"4. **Extreme Boundaries:** Maximum integer limits ($N > 100,000$) to evaluate space overflow and execution timeouts."
-        )
+    if "space complexity" in query_lower or "space" in query_lower or "memory" in query_lower or "ram" in query_lower:
+        if is_definition_query or "meaning" in query_lower or "definition" in query_lower:
+            return (
+                f"### What is Space Complexity? (Definition & Meaning)\n\n"
+                f"**Space Complexity** measures the total amount of memory (RAM) an algorithm allocates during execution relative to input size $N$.\n\n"
+                f"#### Components:\n"
+                f"1. **Auxiliary Memory:** Memory used for extra data structures (HashMaps, arrays, sets).\n"
+                f"2. **Stack Call Memory:** Memory used for recursion call stack frames.\n\n"
+                f"#### For Your Code ({language.upper()}):\n"
+                f"- Auxiliary Space Complexity: **{space_o}**"
+            )
+        else:
+            return (
+                f"### Auxiliary Space Complexity: **{space_o}**\n\n"
+                f"- **State Memory:** Measures additional variables, arrays, sets, maps, or data structures allocated during runtime.\n"
+                f"- **Stack Frame Depth:** Measures maximum recursion stack depth or call stack frames.\n"
+                f"- For this {language.upper()} implementation, space allocation scales as **{space_o}**."
+            )
+
 
     # 7. Specific Variable or Identifier Inquiry
     code_words = set(re.findall(r'\b[a-zA-Z_]\w*\b', code))
