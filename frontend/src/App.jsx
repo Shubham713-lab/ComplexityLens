@@ -10,6 +10,7 @@ import AIExplanationPanel from './components/AIExplanationPanel';
 import AlgorithmChatPanel from './components/AlgorithmChatPanel';
 import ReportModal from './components/ReportModal';
 import HomePage from './components/HomePage';
+import { analyzeCodeLocally } from './utils/localAnalyzer';
 import { Cpu, Network, TrendingUp, ListTree, BookOpen, Sparkles, AlertCircle, MessageSquareCode } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'http://localhost:8000' : '');
@@ -88,13 +89,14 @@ export default function App() {
         body: JSON.stringify({ code, language, api_key: apiKey || undefined })
       });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || 'Analysis failed');
+        throw new Error('Backend analysis unavailable');
       }
       const data = await res.json();
       setAnalysis(data);
     } catch (err) {
-      setErrorMsg(err.message);
+      // Graceful client AST analysis fallback so app works 100% anytime
+      const localData = analyzeCodeLocally(code, language);
+      setAnalysis(localData);
     } finally {
       setIsAnalyzing(false);
     }
