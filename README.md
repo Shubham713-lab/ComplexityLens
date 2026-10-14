@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  🔍 ComplexityLens
+  ComplexityLens
   <br>
 </h1>
 
@@ -32,53 +32,53 @@
 
 ---
 
-## ✨ Features
+## Features
 
-### 1. 🌳 Static AST & Asymptotic Complexity Analysis
+### 1. Static AST & Asymptotic Complexity Analysis
 - Parses code structure using **Abstract Syntax Trees (AST)** for **Python 3**, **C++**, and **Java**.
 - Computes exact **Time Complexity** — O(1), O(log N), O(N), O(N log N), O(N²), O(N³), O(2^N).
 - Reports all three asymptotic bounds: **Big-O** (worst), **Omega Ω** (best), and **Theta Θ** (tight).
 - Calculates **Auxiliary Space Complexity** and SymPy-simplified **Step Formulas** like T(N) = N(N-1)/2.
 - **Built-in Method Awareness**: Detects hidden costs in `sorted()`, `math.factorial()`, `min()`, `max()`, `arr.pop(0)`, `item in list`, etc.
 
-### 2. 📊 Empirical Sandbox Benchmarking
+### 2. Empirical Sandbox Benchmarking
 - **Real CPU Execution**: Executes code in an isolated subprocess runner over dynamic input sizes (N = 10 to 50,000).
 - **High-Precision Timing**: Measures execution duration using `time.perf_counter_ns()` across multiple trial iterations.
 - **R² Regression Curve Fitting**: Computes Coefficient of Determination (R²) to evaluate how well measured timing matches theoretical Big-O growth curves (e.g., `99.4% match to O(N²)`).
 - **Dual-Mode Visualizer**: Toggle between **Empirical Runtime (ms)** and **Theoretical Step Count** views.
 
-### 3. 🕸️ Interactive AST Control Flow Graph
+### 3. Interactive AST Control Flow Graph
 - Built with **ReactFlow (`@xyflow/react`)** with dynamic X-indentation for nested loop depths.
 - **Animated Loopback Edges**: Curved dashed arrows illustrating loop iterations and recursion branches.
 - **Graph-to-Code Click Sync**: Clicking any graph node automatically scrolls and highlights that line in the Monaco Editor.
 - Custom color-coded node cards with line numbers, statement snippets, and complexity badges.
 
-### 4. 🎨 Monaco Editor Line Heatmap
+### 4. Monaco Editor Line Heatmap
 - Embedded **Monaco Code Editor** with custom line decoration heatmaps:
-  - 🔴 **Red Glow** — `O(N²)` / `O(2^N)`: Inner high-cost loops & exponential recursion.
-  - 🟡 **Amber Glow** — `O(N)`: Outer linear loop structures.
-  - 🔵 **Cyan Glow** — `O(log N)`: Logarithmic partitioning steps.
-  - 🟢 **Emerald Tint** — `O(1)`: Constant-time statements.
+  - **Red Glow** — `O(N²)` / `O(2^N)`: Inner high-cost loops & exponential recursion.
+  - **Amber Glow** — `O(N)`: Outer linear loop structures.
+  - **Cyan Glow** — `O(log N)`: Logarithmic partitioning steps.
+  - **Emerald Tint** — `O(1)`: Constant-time statements.
 - **JetBrains Mono** font with code ligatures enabled (`!=`, `==`, `<=`, `=>`).
 
-### 5. 🤖 AI-Powered Optimization Engine
+### 5. AI-Powered Optimization Engine
 - Powered by **Google Gemini** (`google-genai`) for intelligent code analysis.
 - Identifies performance bottlenecks and suggests algorithmic refactoring.
 - Generates a complete **optimized refactored solution** with one-click **Apply to Editor**.
 - Supports **AI chat** — ask follow-up questions about your algorithm's complexity.
 - Falls back to a built-in rule-based engine if no API key is provided.
 
-### 6. 🧮 KaTeX Mathematical Typesetting
+### 6. KaTeX Mathematical Typesetting
 - Renders Big-O notation, Ω, Θ, step formulas, and line cost badges as beautiful math equations using **KaTeX**.
 - Inline math throughout the UI: T(N) = N(N-1)/2 ∈ O(N²).
 
-### 7. 📄 CS Lab Report Export (Printable PDF)
+### 7. CS Lab Report Export (Printable PDF)
 - One-click PDF Lab Report generation using `window.print()`.
 - Print-optimized stylesheet (`@media print`) formatting code blocks, complexity matrices, empirical benchmark tables, and line-cost annotations on clean white paper.
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Technologies |
 |---|---|
@@ -94,7 +94,7 @@
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ComplexityLens/
@@ -146,7 +146,7 @@ ComplexityLens/
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### Prerequisites
 
@@ -217,7 +217,7 @@ npm run dev
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 ### `POST /api/analyze`
 
@@ -320,7 +320,7 @@ Returns the built-in algorithm code presets grouped by language (Python, C++, Ja
 
 ---
 
-## 📚 Preset Algorithm Library
+## Preset Algorithm Library
 
 ComplexityLens ships with classic CS algorithm presets ready to load:
 
@@ -338,7 +338,7 @@ ComplexityLens ships with classic CS algorithm presets ready to load:
 
 ---
 
-## 🌐 Deployment
+## Deployment
 
 The project is deployed on **Vercel** with the React frontend and a serverless Python API running together from a single repository.
 
@@ -365,7 +365,7 @@ The project is deployed on **Vercel** with the React frontend and a serverless P
 
 ---
 
-## 🔒 Security & Privacy
+## Security & Privacy
 
 - **No code is stored**: All submitted code is analyzed in-memory and discarded after the response.
 - **API keys are never logged**: Keys passed via request body are used only for the active request.
@@ -373,7 +373,7 @@ The project is deployed on **Vercel** with the React frontend and a serverless P
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -385,7 +385,7 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License**.
 
